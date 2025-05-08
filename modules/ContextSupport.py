@@ -2,7 +2,7 @@ import io
 import textwrap
 import traceback
 from datetime import datetime
-from typing import List, Literal
+from typing import List, Literal, Callable
 import discord
 from contextlib import redirect_stdout
 from classs import Module, tool, Context
@@ -41,11 +41,11 @@ class ContextSupport(Module):
             stdout = io.StringIO()
             try:
                 exec(to_compile, env)
-                func = env["func"]
+                func: Callable = env["func"]
                 try:
                     with redirect_stdout(stdout):
                         ret = await func()
-                except Exception:
+                except BaseException:
                     value = stdout.getvalue()
                     out = value + traceback.format_exc()
                 else:
