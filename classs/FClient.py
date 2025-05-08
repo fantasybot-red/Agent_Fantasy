@@ -61,7 +61,6 @@ class FClient(discord.Client):
         except BadRequestError as e:
             return f"Error: {e}", None
         tool_calls = []
-        last_message = 0
         message_response = None
         async for chunk in response:
             for choice in chunk.choices:
@@ -72,14 +71,7 @@ class FClient(discord.Client):
                         else:
                             tool_calls[-1].function.arguments += tool_call.function.arguments
                 elif choice.delta.content is not None:
-                    ctx.add_response(choice.delta.content)
-                    if time.time() - last_message > 1 and ctx.response.strip():
-                        temp_content = ctx.response + self.loading_emoji
-                        if message_response is None:
-                            message_response = await ctx.message.reply(temp_content, embeds=ctx.embeds)
-                        else:
-                            await message_response.edit(content=temp_content, embeds=ctx.embeds)
-                        last_message = time.time()
+                    await ctx.add_response(choice.delta.content)
         if tool_calls:
             return await self.process_tool_calls(tool_calls, messages, ctx)
         return ctx, message_response

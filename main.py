@@ -37,10 +37,7 @@ async def on_message(message: discord.Message):
             messages,
             Context(message, client)
         )
-    if message_response is None:
-        await message.reply(ctx.response, embeds=ctx.embeds)
-    else:
-        await message_response.edit(content=ctx.response, embeds=ctx.embeds)
+    await ctx.finish_response()
 
 
 
