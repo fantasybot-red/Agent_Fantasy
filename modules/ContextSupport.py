@@ -12,22 +12,26 @@ from objs.EmbedArgs import EmbedArgs
 class ContextSupport(Module):
 
     @tool(
-        f"""
-        Safe eval function for **read-only access** to `discord.py` objects.
-        Always check function return can be None or empty.
-        - Only use to **retrieve information** from the following objects:
-          - `message`: discord.Message
-          - `client`: discord.Client
-        - Do **not** execute arbitrary user code.
-        - `await` is allowed in this context.
-        - discord.py version {discord.__version__} is used.
-        - You need to use return to see the result or print it.
-        - You can use message to get current message info or author info.
-        - User Banner can only be retrieved with `client.fetch_user`.
+    f"""
+        Read-only eval function for safely retrieving data from discord.py objects.
+        - you are writing body for the function.
+        - Access is **read-only** no modifications or side effects allowed.
+        - Supported objects: `message` (discord.Message), `client` (discord.Client).
+        - Safe to use `await`
+        - No user or arbitrary code execution.
+        - You need to add `return` at the end to get output.
+        - Always handle possible `None` or empty values.
+        - Use `client.fetch_user` to retrieve a user banner.
+        
+        Example:
+        ```python
+        return message.author.id
+        ```
+        discord.py version: {discord.__version__}
         """,
         body="python code to run",
     )
-    async def safe_eval(self, ctx: Context, body: str):
+    async def get_extra_info(self, ctx: Context, body: str):
         try:
             env = {
                 "message": ctx.message,
@@ -57,24 +61,22 @@ class ContextSupport(Module):
         embeds="list of embeds to add to the message max 10 embeds",
         content="content of the message when send with embed",
     )
-    async def send_embed(self, ctx: Context, embeds: List[EmbedArgs], content: str=None):
+    async def set_embeds(self, ctx: Context, embeds: List[EmbedArgs]):
         """
-        Send a message with an embed (if needed), following these rules:
-        - Embeds must not be empty.
-        - Use an embed **only** when displaying images or structured data (e.g., using fields).
+        Set embeds to the response message.
+        - You shouldn't use embeds for usual text messages.
         - Mentions in embeds are not notified — use `content` to mention users.
         - The embed title supports **plain text only** — no markdown or mentions.
-        - Embeds dose **not** display images from URLs so use `thumbnail` or `image` for images.
+        - Always remember image link is not display inside embed content.
+        - You need at least one embed to send a message.
         """
         if not len(embeds):
-            return {"error": "embeds cannot be empty"}
-        kwargs = {"embeds": [discord.Embed.from_dict(embed) for embed in embeds]}
-        if content is not None:
-            kwargs["content"] = content
-        await ctx.message.reply(**kwargs)
+            return {"reason": "there are not embeds to set", "error": True}
+        ctx.embeds.extend([discord.Embed.from_dict(embed) for embed in embeds])
+        return {"error": False}
 
     @tool()
-    def reformat_time(self, ctx: Context, time_text: str, type_time: Literal["t", "T", "d", "D", "F", "R"]=None):
+    def format_time(self, ctx: Context, time_text: str, type_time: Literal["t", "T", "d", "D", "F", "R"]=None):
         """
         Reformat in time in ISO 8601 with microseconds and offset to discord timestamp format.
         Use type_time for different format.

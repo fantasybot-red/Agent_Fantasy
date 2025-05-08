@@ -32,16 +32,14 @@ async def on_message(message: discord.Message):
     })
 
     async with message.channel.typing():
-        full_response, message_response = await client.process_stream_response(
+        ctx, message_response = await client.process_stream_response(
             messages,
             Context(message, client)
         )
-    if full_response is None:
-        return
     if message_response is None:
-        await message.reply(full_response)
+        await message.reply(ctx.response, embeds=ctx.embeds)
     else:
-        await message_response.edit(content=full_response)
+        await message_response.edit(content=ctx.response, embeds=ctx.embeds)
 
 
 

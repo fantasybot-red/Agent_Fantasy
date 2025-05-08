@@ -5,11 +5,10 @@ from typing import List
 
 import discord
 from string import Template
+from .Context import Context
 from openai import AsyncAzureOpenAI, BadRequestError, AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
-
-Context = None
 
 
 class FClient(discord.Client):
@@ -62,7 +61,6 @@ class FClient(discord.Client):
         except BadRequestError as e:
             return f"Error: {e}", None
         tool_calls = []
-        full_response = ""
         last_message = 0
         message_response = None
         async for chunk in response:
@@ -74,17 +72,17 @@ class FClient(discord.Client):
                         else:
                             tool_calls[-1].function.arguments += tool_call.function.arguments
                 elif choice.delta.content is not None:
-                    full_response += choice.delta.content
-                    if time.time() - last_message > 1 and full_response.strip():
-                        temp_content = full_response + self.loading_emoji
+                    ctx.add_response(choice.delta.content)
+                    if time.time() - last_message > 1 and ctx.response.strip():
+                        temp_content = ctx.response + self.loading_emoji
                         if message_response is None:
-                            message_response = await ctx.message.reply(temp_content)
+                            message_response = await ctx.message.reply(temp_content, embeds=ctx.embeds)
                         else:
-                            await message_response.edit(content=temp_content)
+                            await message_response.edit(content=temp_content, embeds=ctx.embeds)
                         last_message = time.time()
         if tool_calls:
             return await self.process_tool_calls(tool_calls, messages, ctx)
-        return full_response, message_response
+        return ctx, message_response
 
     async def process_tool_calls(self, tool_calls: List[ChoiceDeltaToolCall],
                                  messages: List[ChatCompletionMessageParam], ctx: Context):
@@ -105,8 +103,6 @@ class FClient(discord.Client):
             try:
                 result = await fn.call(ctx, **args)
                 print(f"Tool call: {tool_call.function.name} with args: {args}, result: {result}")
-                if result is None:
-                    return None, None
             except Exception as e:
                 result = {"error": str(e)}
             messages.append({
@@ -144,11 +140,14 @@ class FClient(discord.Client):
             context["User Nickname"] = message.author.nick
             context["Message ID"] = message.id
         if message.reference:
-            reply_message = await message.channel.fetch_message(message.reference.message_id)
-            context["Message Reply Message ID"] = message.reference.message_id
-            context["Message Reply Author"] = reply_message.author.name
-            context["Message Reply Author ID"] = reply_message.author.id
-            context["Message Reply Content"] = reply_message.content
+            try:
+                reply_message = await message.channel.fetch_message(message.reference.message_id)
+                context["Message Reply Message ID"] = message.reference.message_id
+                context["Message Reply Author"] = reply_message.author.name
+                context["Message Reply Author ID"] = reply_message.author.id
+                context["Message Reply Content"] = reply_message.content
+            except discord.NotFound:
+                pass
         context_string = '\n'.join([f'{k}: {v}' for k, v in context.items()])
         return f"{message.content}\n\n===============\n{context_string}"
 

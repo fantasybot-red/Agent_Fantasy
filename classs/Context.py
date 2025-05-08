@@ -1,24 +1,22 @@
-from discord import Message
+from typing import List
+
+from discord import Message, Embed
 from classs import FClient
 
 
 class Context:
     message: Message
     client: FClient
-    extra_info: dict = {}
+    embeds: List[Embed]
+    extra_info: dict
+    response: str
 
     def __init__(self, message: Message, client: FClient):
         self.message = message
         self.client = client
+        self.response = ""
+        self.embeds = []
+        self.extra_info = {}
 
-    def __getattr__(self, item):
-        attr = super().__getattribute__(item)
-        if attr is None:
-            return self.extra_info.get(item)
-        return attr
-
-    def __setattr__(self, key, value):
-        if key in ["client", "message", "extra_info"]:
-            super().__setattr__(key, value)
-        else:
-            self.extra_info[key] = value
+    def add_response(self, response: str):
+        self.response += response
