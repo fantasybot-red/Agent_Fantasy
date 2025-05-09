@@ -35,6 +35,12 @@ class Context:
                 await self.response_message.edit(content=temp_content, embeds=self.embeds)
             self.last_edit = time.time()
 
+    async def start_response(self):
+        if self.response_message is None:
+            self.response_message = await self.message.reply("-# "+self.client.emojis["typing"])
+        else:
+            await self.response_message.edit(content="-# "+self.client.emojis["typing"])
+
     async def finish_response(self):
         if not self.response.strip():
             return

@@ -1,6 +1,5 @@
 import json
 import os
-import time
 from typing import List
 
 import discord
@@ -53,7 +52,7 @@ class FClient(discord.Client):
             **kwargs
         )
 
-    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: Context) -> (str, discord.Message):
+    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: Context) -> (Context, discord.Message):
         try:
             response = await self.openai.chat.completions.create(
                 model=os.getenv('OPENAI_API_MODAL'),
@@ -63,7 +62,13 @@ class FClient(discord.Client):
                 tool_choice="auto"
             )
         except BadRequestError as e:
-            return f"Error: {e}", None
+            messages = [messages[0]]
+            error_reason = e.response.json()["error"]["innererror"]["content_filter_result"]
+            messages.append({
+                "role": "system",
+                "content": f"User just make you error following reason: {error_reason} \nRespond with a text message to fix this error."
+            })
+            return await self.process_stream_response(messages, ctx)
         tool_calls = []
         message_response = None
         async for chunk in response:
