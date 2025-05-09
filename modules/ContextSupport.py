@@ -100,6 +100,21 @@ class ContextSupport(Module):
             return_time.append(f"<t:{int(unix_time)}:{type_time}>" if type_time else f"<t:{int(unix_time)}>")
         return return_time
 
+    @tool(
+        status="what you will do next",
+    )
+    async def set_status(self, ctx: Context, status: str):
+        """
+        Set status before sending the message.
+        - You can set status to any text you want.
+        - Status allow markdown and mentions.
+        - Status must be short and clear.
+        - You MUST set status before using any other tool.
+        - You not allow to say tool name in status.
+        - You don't need to set status if you're not using tool.
+        """
+        await ctx.set_status(status)
+        return {"success": True, "reason": "status set successfully"}
 
 async def setup(client):
     await client.add_module(ContextSupport(client))

@@ -25,8 +25,10 @@ class Context:
 
     async def add_response(self, response: str):
         self.response += response
+        if not self.response.strip():
+            return
         if time.time() - self.last_edit > 3 and self.response.strip():
-            temp_content = self.response + self.client.loading_emoji
+            temp_content = self.response + self.client.emojis["typing"]
             if self.response_message is None:
                 self.response_message = await self.message.reply(temp_content, embeds=self.embeds)
             else:
@@ -34,13 +36,16 @@ class Context:
             self.last_edit = time.time()
 
     async def finish_response(self):
+        if not self.response.strip():
+            return
         if self.response_message is None:
             await self.message.reply(self.response, embeds=self.embeds)
         else:
             await self.response_message.edit(content=self.response, embeds=self.embeds)
 
     async def set_status(self, status: str):
+        status = self.client.emojis["loading"] + " " + status
         if self.response_message is None:
-            await self.message.reply(status)
+            self.response_message = await self.message.reply(status)
         else:
             await self.response_message.edit(content=status)

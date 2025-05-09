@@ -14,7 +14,7 @@ from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
 class FClient(discord.Client):
     openai: AsyncAzureOpenAI | AsyncOpenAI
     system_prompt: Template
-    loading_emoji: str
+    emojis: dict = {}
     functions = {}
     functions_json_schema = []
 
@@ -25,8 +25,12 @@ class FClient(discord.Client):
             self.system_prompt = Template(
                 f.read()
             )
-        self.loading_emoji = os.getenv('LOADING_EMOJI')
-        super().__init__(intents=intents)
+        for k, v in os.environ.items():
+            if k.startswith("EMOJI_"):
+                self.emojis[k[6:].lower()] = v
+        allowed_mentions = discord.AllowedMentions.none()
+        allowed_mentions.replied_user = True
+        super().__init__(intents=intents, allowed_mentions=allowed_mentions)
 
     def load_open_ai(self, **options):
         if os.getenv('OPENAI_API_TYPE') == 'AZURE_OPENAI':
@@ -97,6 +101,7 @@ class FClient(discord.Client):
                 print(f"Tool call: {tool_call.function.name} with args: {args}, result: {result}")
             except Exception as e:
                 result = {"error": str(e)}
+                print(f"Tool call: {tool_call.function.name} with args: {args}, error: {e}")
             messages.append({
                 "role": "tool",
                 "content": json.dumps(result),
