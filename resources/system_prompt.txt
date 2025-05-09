@@ -28,6 +28,7 @@ User Nick Name: cute_user_nickname
 User Avatar: https://example.com/avatar.png
 ```
 
+IF USER WHAT TO GET FULL INFO ABOUT THEMSELVES, YOU MUST GET IT FROM `get_extra_info` TOOL.
 
 If you what to Mention the username from user id, you can use the following format:
 ```

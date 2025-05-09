@@ -51,6 +51,17 @@ class SearchHelper(Module):
             list_result.append(data)
         return list_result
 
+    @tool(
+        url="URL to open",
+    )
+    async def open_url(self, ctx: Context, url: str):
+        """
+        Open a URL in the browser.
+        This function is used to open a URL in the browser.
+        """
+
+        return f"Opening {url} in browser."
+
 
 async def setup(client):
     await client.add_module(SearchHelper(client))

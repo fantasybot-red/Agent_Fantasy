@@ -69,7 +69,8 @@ class ContextSupport(Module):
         - Mentions in embeds are not notified — use `content` to mention users.
         - The embed title supports **plain text only** — no markdown or mentions.
         - Always remember image link is not display inside embed content.
-        - Use `image` or `thumbnail` to display image inside embed.
+        - Image link is not display inside embed content.
+        - You MUST use `image` or `thumbnail` to display image link inside embed.
         - You need at least one embed to send a message.
         - You can set up to 10 embeds.
         """
@@ -109,7 +110,7 @@ class ContextSupport(Module):
         - You can set status to any text you want.
         - Status allow markdown and mentions.
         - Status must be short and clear.
-        - You MUST set status before using any other tool.
+        - You MUST set status if you think that user will wait for a long time.
         - You not allow to say tool name in status.
         - You don't need to set status if you're not using tool.
         """
