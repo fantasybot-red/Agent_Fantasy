@@ -19,8 +19,9 @@ class SearchHelper(Module):
         You should use Vietnamese query or English query to get the best result.
         Search query should be concise and clear.
         """
-
-        return {}
+        special_data = await self.coccoc_search(q)
+        web_data = await self.google_seach(q)
+        return special_data + web_data
 
     async def coccoc_search(self, q: str):
         headers = {
@@ -54,18 +55,26 @@ class SearchHelper(Module):
         return special_data
 
     async def google_seach(self, q: str):
-        if os.getenv("GOOGLE_TOKEN") is None or os.getenv("GOOGLE_CX_ID") is None:
+        if os.getenv("GOOGLE_API_KEY") is None or os.getenv("GOOGLE_CX_ID") is None:
             return []
         payload = {
-            "key": os.getenv("GOOGLE_TOKEN"),
+            "key": os.getenv("GOOGLE_API_KEY"),
             "cx": os.getenv("GOOGLE_CX_ID"),
             "q": q,
-            "num": 5
+            "num": 10
         }
-        async with aiohttp.ClientSession(headers=headers_real) as s:
+        async with aiohttp.ClientSession() as s:
             async with s.get("https://www.googleapis.com/customsearch/v1", params=payload) as r:
                 djson = await r.json()
-        return djson['items']
+        search_results = []
+        for item in djson.get("items", []):
+            search_results.append({
+                "url": item['link'],
+                "title": item['title'],
+                "description": item.get('snippet', ""),
+                "type": "web",
+            })
+        return search_results
 
 async def setup(client):
     await client.add_module(SearchHelper(client))
