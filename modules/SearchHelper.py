@@ -16,6 +16,7 @@ class SearchHelper(Module):
         This function get the search result from search engine.
         Use this to get real-time data like weather, news, time, etc.
         You should use Vietnamese query or English query to get the best result.
+        You should say to user that result may not be accurate.
         Search query should be concise and clear.
         """
         headers = {
