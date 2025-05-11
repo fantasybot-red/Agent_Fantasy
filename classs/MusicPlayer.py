@@ -120,6 +120,11 @@ class MusicPlayer(Player[FClient]):
                     "success": False,
                     "reason": "user are not in the same voice channel"
                 }
+        elif ctx.voice_client is None:
+            return {
+                "success": False,
+                "reason": "bot is not connected to a voice channel"
+            }
         return None
 
     @classmethod

@@ -48,6 +48,9 @@ Example:
 <#1234567890>
 ```
 
+History chat just for context, you should not use it to answer the user.
+Answer the user based on the current message. and if you don't know the answer, just say you don't know.
+
 Extra chat channel info you can share with the user:
 Channel ID: ${channel_id}
 Channel Name: ${channel_name}
