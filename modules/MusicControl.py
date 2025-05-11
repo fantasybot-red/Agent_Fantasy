@@ -10,7 +10,7 @@ class MusicControl(Module):
     async def play_music(self, ctx: AIContext, query: str):
         """
         Play music from a given query or URL.
-        - Support YouTube, Spotify, SoundCloud, and other music platforms.
+        - Support YouTube, Spotify, SoundCloud platforms.
         - This function will play the music in the voice channel.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.
@@ -50,7 +50,7 @@ class MusicControl(Module):
         """
         Resume the current music.
         - This function will resume the music in the voice channel.
-        - You MUST embed `current_playing_track` to display.
+        - You MUST embed `current_playing_track` to display. if you have `current_playing_track`.
         - You should give all information to user.
         """
         check = MusicPlayer.check_voice_status(ctx)
@@ -92,7 +92,7 @@ class MusicControl(Module):
         """
         Skip the current music.
         - This function will skip the music in the voice channel.
-        - You MUST embed `current_playing_track` to display.
+        - You MUST embed `current_playing_track` to display. if you have `current_playing_track`.
         - You should give all information to user.
         """
         check = MusicPlayer.check_voice_status(ctx)
@@ -132,6 +132,32 @@ class MusicControl(Module):
                 "url": ctx.voice_client.current_track.uri,
                 "thumbnail": ctx.voice_client.current_track.artwork_url
             }
+        }
+
+    @tool()
+    async def queue(self, ctx: AIContext):
+        """
+        Get the current queue of music.
+        - This function will get the current queue of music in the voice channel.
+        - Recomment using embed for this.
+        - You should give all information to user.
+        """
+        check = MusicPlayer.check_voice_status(ctx)
+        if check:
+            return check
+        display_queue = ctx.voice_client.queue[:5]
+        queue_len = len(ctx.voice_client.queue) - len(display_queue)
+        return {
+            "success": True,
+            "reason": "current queue",
+            "queue": [
+                {
+                    "title": i.title,
+                    "url": i.uri,
+                    "thumbnail": i.artwork_url
+                } for i in display_queue
+            ],
+            "extra_queue_length": queue_len
         }
 
 async def setup(client):

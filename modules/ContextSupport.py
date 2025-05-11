@@ -81,7 +81,7 @@ class ContextSupport(Module):
         """
         Set embeds to the _response message.
         - You shouldn't use embeds for usual text messages.
-        - Mentions in embeds are not notified — use `content` to mention users.
+        - Mentions in embeds are not notified — use normal response for that.
         - The embed title supports **plain text only** — no markdown or mentions.
         - Always remember image link is not display inside embed content.
         - Image link is not display inside embed content.
@@ -102,11 +102,11 @@ class ContextSupport(Module):
     )
     async def set_status(self, ctx: AIContext, status: str):
         """
-        Set status before sending the message.
+        Set status what you're doing if you're using tool.
         - You can use status to show what you're doing if you're using tool.
         - Status allow markdown and mentions.
         - Status must be short and clear.
-        - You shouldn't use status for usual text messages.
+        - You MUST use `set_status` before using tool except set data to the message.
         - You not allow to say tool name in status.
         - You don't need to set status if you're not using tool.
         """
