@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import List, Callable
 import discord
 from contextlib import redirect_stdout
-from classs import Module, tool, Context
+from classs import Module, tool, AIContext
 from objs.EmbedArgs import EmbedArgs
 
 
@@ -25,7 +25,7 @@ class ContextSupport(Module):
         - No user or arbitrary code execution.
         - You need to add `return` at the end to get output.
         - Always handle possible `None` or empty values.
-        - You allow to say response message in your w
+        - You allow to say _response message in your w
         - Use `client.fetch_user` to retrieve a user banner.
         - if you got datetime object, you can use function `format_datetime` to format it.
             - args follow `format_datetime(datetime, type_time: typing.Optional[str]) -> str:`.
@@ -46,7 +46,7 @@ class ContextSupport(Module):
         """,
         body="python code to run",
     )
-    async def get_extra_info(self, ctx: Context, body: str):
+    async def get_extra_info(self, ctx: AIContext, body: str):
         try:
             env = {
                 "message": ctx.message,
@@ -77,9 +77,9 @@ class ContextSupport(Module):
         embeds="list of embeds",
         content="content of the message when send with embed",
     )
-    async def set_embeds(self, ctx: Context, embeds: List[EmbedArgs]):
+    async def set_embeds(self, ctx: AIContext, embeds: List[EmbedArgs]):
         """
-        Set embeds to the response message.
+        Set embeds to the _response message.
         - You shouldn't use embeds for usual text messages.
         - Mentions in embeds are not notified — use `content` to mention users.
         - The embed title supports **plain text only** — no markdown or mentions.
@@ -100,7 +100,7 @@ class ContextSupport(Module):
     @tool(
         status="what you will do next",
     )
-    async def set_status(self, ctx: Context, status: str):
+    async def set_status(self, ctx: AIContext, status: str):
         """
         Set status before sending the message.
         - You can use status to show what you're doing if you're using tool.

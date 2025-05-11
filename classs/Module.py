@@ -3,7 +3,7 @@ import functools
 import inspect
 import textwrap
 
-from .Context import Context
+from .AIContext import AIContext
 from .FClient import FClient
 from concurrent.futures import ThreadPoolExecutor
 from typing import Literal, get_args, Any, Tuple, get_origin, Dict, Optional, Union
@@ -108,7 +108,7 @@ class FunctionMeta:
     def set_master_class(self, master_class):
         self.master_class = master_class
 
-    async def call(self, ctx: Context, *args, **kwargs):
+    async def call(self, ctx: AIContext, *args, **kwargs):
         if self.master_class is not None:
             args = (self.master_class, ctx) + args
         else:

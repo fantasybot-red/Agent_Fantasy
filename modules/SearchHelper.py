@@ -2,7 +2,7 @@ import os
 import re
 import time
 import aiohttp
-from classs import Module, tool, Context
+from classs import Module, tool, AIContext
 
 
 class SearchHelper(Module):
@@ -10,7 +10,7 @@ class SearchHelper(Module):
     @tool(
         query="Search question",
     )
-    async def search(self, ctx: Context, q: str):
+    async def search(self, ctx: AIContext, q: str):
         """
         Search for a query using search engine.
         This function get the search result from search engine.

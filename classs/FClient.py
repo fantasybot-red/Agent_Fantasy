@@ -1,10 +1,12 @@
 import json
 import os
+import traceback
 from typing import List
 
 import discord
 from string import Template
-from .Context import Context
+from classs.AIContext import AIContext
+from mafic import NodePool, TrackEndEvent, EndReason, TrackExceptionEvent
 from openai import AsyncAzureOpenAI, BadRequestError, AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
@@ -30,6 +32,8 @@ class FClient(discord.Client):
         allowed_mentions = discord.AllowedMentions.none()
         allowed_mentions.replied_user = True
         super().__init__(intents=intents, allowed_mentions=allowed_mentions)
+        self.pool = NodePool(self)
+        self.pool_loaded = False
 
     def load_open_ai(self, **options):
         if os.getenv('OPENAI_API_TYPE') == 'AZURE_OPENAI':
@@ -52,7 +56,7 @@ class FClient(discord.Client):
             **kwargs
         )
 
-    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: Context) -> (Context, discord.Message):
+    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: AIContext) -> (AIContext, discord.Message):
         try:
             response = await self.openai.chat.completions.create(
                 model=os.getenv('OPENAI_API_MODAL'),
@@ -86,7 +90,7 @@ class FClient(discord.Client):
         return ctx, message_response
 
     async def process_tool_calls(self, tool_calls: List[ChoiceDeltaToolCall],
-                                 messages: List[ChatCompletionMessageParam], ctx: Context):
+                                 messages: List[ChatCompletionMessageParam], ctx: AIContext):
         messages.append({
             "role": "assistant",
             "tool_calls": [tool.to_dict() for tool in tool_calls]
@@ -105,6 +109,7 @@ class FClient(discord.Client):
                 result = await fn.call(ctx, **args)
                 print(f"Tool call: {tool_call.function.name} with args: {args}, result: {result}")
             except Exception as e:
+                traceback.print_exc()
                 result = {"error": str(e)}
                 print(f"Tool call: {tool_call.function.name} with args: {args}, error: {e}")
             messages.append({
@@ -157,6 +162,14 @@ class FClient(discord.Client):
         await self.load_modules()
         self.functions_json_schema.extend([f.to_dict() for f in self.functions.values()])
 
+    async def load_lavalink_nodes(self):
+        if self.pool_loaded:
+            return
+        nodes = json.loads(os.getenv('LAVALINK_NODES', '[]'))
+        for node in nodes:
+            await self.pool.create_node(**node)
+        self.pool_loaded = True
+
     async def add_module(self, module):
         self.functions.update(module.functions)
 
@@ -166,3 +179,41 @@ class FClient(discord.Client):
                 module_name = filename[:-3]
                 module = __import__(f"modules.{module_name}", fromlist=["setup"])
                 await module.setup(self)
+
+    # EVENT HANDLER
+
+    async def on_message(self, message: discord.Message):
+        if message.author.bot:
+            return
+
+        if self.user not in message.mentions:
+            return
+
+        ctx = AIContext(message, self)
+        await ctx.start_response()
+        messages = await self.get_messages_history(message)
+
+        messages.insert(0, {
+            "role": "system",
+            "content": self.get_system_prompt(message)
+        })
+
+        ctx, message_response = await self.process_stream_response(
+            messages,
+            ctx
+        )
+        await ctx.finish_response()
+
+    async def on_ready(self):
+        await self.load_lavalink_nodes()
+        print(f'We have logged in as {self.user}')
+
+    # LAVALINK EVENTS
+
+    async def on_track_end(self, event: TrackEndEvent):
+        if event.reason == EndReason.FINISHED:
+            await event.player.skip()
+
+    async def on_track_exception(self, event: TrackExceptionEvent):
+        await event.player.skip()
+

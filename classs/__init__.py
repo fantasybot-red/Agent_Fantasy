@@ -1,3 +1,3 @@
 from .FClient import FClient
-from .Context import Context
+from .MusicPlayer import MusicPlayer
 from .Module import Module, tool, FunctionMeta
