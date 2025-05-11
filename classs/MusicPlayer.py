@@ -14,6 +14,12 @@ class MusicPlayer(Player[FClient]):
         self.queue = []
         self.history = []
 
+    async def play(
+        self,
+        track: Track | str, **kwargs: dict[str, str]
+    ) -> None:
+        await super().play(track, **kwargs)
+
     async def play_track(self, track: Track):
         if self.current_track:
             self.queue.append(self.current_track)
