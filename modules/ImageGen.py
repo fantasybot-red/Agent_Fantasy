@@ -13,19 +13,20 @@ class ImageGen(Module):
     @tool(
         prompt="Prompt for image generation",
         negative_prompt="Negative prompt for image generation",
-        width="Width of the image max: 4096",
-        height="Height of the image max: 4096",
+        width="Width of the image max: 1920",
+        height="Height of the image max: 1920",
     )
     async def generate_image(self, ctx: AIContext, prompt: str, negative_prompt: str,
                              width: int, height: int):
         """
         Generate an image from a given prompt.
         - You MUST call `set_status` before using this tool.
-        - Prompt should MUST be in English.
+        - Prompt MUST be in English.
         - Prompt should be concise and clear.
         - Separate each key charter with a comma.
         - You not allow to generate image about NSFW content.
-        - Recommend aspect ratio is 16:9 or 9:16 or 1:1.
+        - Recommend aspect ratio is 1:1, 16:9 or 9:16.
+        - Width and height should be divisible by 16.
         - if you what to embed image file to message, you MUST follow the below format:
             ```
             attachment://{file_name}
@@ -44,15 +45,16 @@ class ImageGen(Module):
                 "reason": "Image generation is not enabled. Please contact the admin."
             }
 
+        elif width > 1920 or height > 1920:
+            return {
+                "success": False,
+                "reason": "Image size is too large. Max size is 1920x1072."
+            }
+
         headers = {
             "Authorization": f"Bearer {token}",
         }
 
-        if width > 4096 or height > 4096:
-            return {
-                "success": False,
-                "reason": "Width and height should be less than 4096.",
-            }
         data = {
             "inputs": prompt,
             "parameters": {
@@ -76,11 +78,12 @@ class ImageGen(Module):
                         "file_name": file.filename
                     }
                 else:
-                    print(r.status, await r.read())
-        return {
-            "success": False,
-            "reason": "Image generation failed.",
-        }
+                    data = await r.json()
+                    return {
+                        "success": False,
+                        "reason": "Image generation failed.",
+                        "error": data["error"]
+                    }
 
 
 async def setup(client):
