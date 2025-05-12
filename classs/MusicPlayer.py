@@ -1,25 +1,40 @@
+from typing import Literal
+
 from discord.abc import Connectable
 from mafic import Player, Track, SearchType, Playlist
 
 from classs import AIContext, FClient
 
+
 class MusicPlayer(Player[FClient]):
     current_track: Track | None
     queue: list[Track]
     history: list[Track]
+    volume: int
+    loop_mode: Literal["off", "track", "all"]
 
     def __init__(self, client: FClient, channel: Connectable) -> None:
         super().__init__(client, channel)
         self.current_track = None
         self.queue = []
         self.history = []
+        self.volume = 100
+        self.loop_mode = "off"
 
     async def play(
-        self,
-        track: Track | str, **kwargs: dict[str, str]
+            self,
+            track: Track | str, **kwargs: dict[str, str]
     ) -> None:
         # update status and do more
         await super().play(track, **kwargs)
+
+    async def set_volume(self, volume: int, /) -> None:
+        """
+        Set the volume of the player.
+        :param volume: Volume level (0-100)
+        """
+        self.volume = volume
+        await super().set_volume(volume)
 
     async def play_track(self, track: Track):
         if self.current_track:
@@ -29,7 +44,8 @@ class MusicPlayer(Player[FClient]):
                 "reason": "added track to queue",
                 "track_name": track.title,
                 "track_url": track.uri,
-                "thumbnail": track.artwork_url
+                "thumbnail": track.artwork_url,
+                "player_info": self.get_player_status_short()
             }
         else:
             self.current_track = track
@@ -42,7 +58,8 @@ class MusicPlayer(Player[FClient]):
                     "title": track.title,
                     "url": track.uri,
                     "thumbnail": track.artwork_url
-                }
+                },
+                "player_info": self.get_player_status_short()
             }
 
     async def play_playlist(self, playlist: Playlist):
@@ -52,7 +69,8 @@ class MusicPlayer(Player[FClient]):
                 "success": True,
                 "reason": "added playlist to queue",
                 "playlist_track_length": len(playlist.tracks),
-                "playlist_name": playlist.name
+                "playlist_name": playlist.name,
+                "player_info": self.get_player_status_short()
             }
         else:
             self.current_track = playlist.tracks[0]
@@ -68,35 +86,55 @@ class MusicPlayer(Player[FClient]):
                     "title": self.current_track.title,
                     "url": self.current_track.uri,
                     "thumbnail": self.current_track.artwork_url
-                }
+                },
+                "player_info": self.get_player_status_short()
             }
 
     async def skip(self):
-        if self.queue:
+        if self.loop_mode == "track":
+            await self.stop()
+            await self.play(self.current_track)
+
+        elif self.loop_mode == "all":
+            if not self.queue:
+                self.queue, self.history = self.history, []
             self.history.append(self.current_track)
             self.current_track = self.queue.pop(0)
             await self.stop()
             await self.play(self.current_track)
-            return {
-                "success": True,
-                "reason": "skipped track",
-                "current_playing_track": {
-                    "title": self.current_track.title,
-                    "url": self.current_track.uri,
-                    "thumbnail": self.current_track.artwork_url
-                }
-            }
+
+        elif self.queue:
+            self.history.append(self.current_track)
+            self.current_track = self.queue.pop(0)
+            await self.stop()
+            await self.play(self.current_track)
+
         else:
             await self.disconnect()
-            return {
-                "success": False,
-                "reason": "no track to skip bot will disconnect"
-            }
+            return {"success": False, "reason": "no track to skip bot will disconnect"}
+
+        return {
+            "success": True,
+            "reason": "skipped track",
+            "current_playing_track": {
+                "title": self.current_track.title,
+                "url": self.current_track.uri,
+                "thumbnail": self.current_track.artwork_url
+            },
+            "player_info": self.get_player_status_short()
+        }
+
 
     async def previous(self):
-        if self.history:
+        if self.loop_mode == "track":
+            return {
+                "success": False,
+                "reason": "loop mode is track, cannot previous"
+            }
+
+        if self.history or (self.loop_mode == "all" and self.queue):
             self.queue.insert(0, self.current_track)
-            self.current_track = self.history.pop()
+            self.current_track = self.history.pop() if self.history else self.queue.pop()
             await self.stop()
             await self.play(self.current_track)
             return {
@@ -106,13 +144,14 @@ class MusicPlayer(Player[FClient]):
                     "title": self.current_track.title,
                     "url": self.current_track.uri,
                     "thumbnail": self.current_track.artwork_url
-                }
+                },
+                "player_info": self.get_player_status_short()
             }
-        else:
-            return {
-                "success": False,
-                "reason": "no previous track to previous"
-            }
+
+        return {
+            "success": False,
+            "reason": "no previous track to previous"
+        }
 
     @classmethod
     def check_voice_status(cls, ctx: AIContext):
@@ -160,3 +199,54 @@ class MusicPlayer(Player[FClient]):
         if isinstance(track, Playlist):
             return await ctx.voice_client.play_playlist(track)
         return await ctx.voice_client.play_track(track[0])
+
+    def loop(self, mode: Literal["off", "track", "all"]):
+        """
+        Set the loop mode of the player.
+        :param mode: Loop mode (off, track, all)
+        """
+        if mode not in ["off", "track", "all"]:
+            return {
+                "success": False,
+                "reason": "invalid loop mode"
+            }
+        self.loop_mode = mode
+        return {
+            "success": True,
+            "reason": f"loop mode set to {mode}"
+        }
+
+    def get_status(self, success: bool, reason: str):
+        return {
+            "success": success,
+            "reason": reason,
+            "current_playing_track": {
+                "title": self.current_track.title,
+                "url": self.current_track.uri,
+                "thumbnail": self.current_track.artwork_url
+            },
+            "player_info": self.get_player_status()
+        }
+
+    def get_player_status(self):
+        position = self._fomart_ms(self.position)
+        song_len = self._fomart_ms(self.current_track.length)
+        data = self.get_player_status_short()
+        data["track_length"] = song_len
+        data["current_time"] = position
+        return data
+
+    def get_player_status_short(self):
+        return {
+            "volume": self.volume,
+            "loop_mode": self.loop_mode,
+        }
+
+    def _fomart_ms(self, ms: int) -> str:
+        """
+        Fomart ms to mm:ss
+        """
+        seconds = (ms // 1000) % 60
+        minutes = (ms // (1000 * 60)) % 60
+        hours = (ms // (1000 * 60 * 60)) % 24
+        return f"{hours}:{minutes}:{seconds}" if hours > 0 else f"{minutes}:{seconds}"

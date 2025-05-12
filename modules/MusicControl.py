@@ -1,8 +1,10 @@
+from typing import Literal
+
 from classs import Module, tool, MusicPlayer
 from classs.AIContext import AIContext
 
-class MusicControl(Module):
 
+class MusicControl(Module):
 
     @tool(
         query="Search query for music or music URL",
@@ -30,15 +32,10 @@ class MusicControl(Module):
             return check
         if not ctx.voice_client.paused:
             await ctx.voice_client.pause()
-            return {
-                "success": True,
-                "reason": "paused music",
-                "current_playing_track": {
-                    "title": ctx.voice_client.current_track.title,
-                    "url": ctx.voice_client.current_track.uri,
-                    "thumbnail": ctx.voice_client.current_track.artwork_url
-                }
-            }
+            return ctx.voice_client.get_status(
+                True,
+                "resumed music",
+            )
         else:
             return {
                 "success": False,
@@ -58,15 +55,10 @@ class MusicControl(Module):
             return check
         if ctx.voice_client.paused:
             await ctx.voice_client.resume()
-            return {
-                "success": True,
-                "reason": "resumed music",
-                "current_playing_track": {
-                    "title": ctx.voice_client.current_track.title,
-                    "url": ctx.voice_client.current_track.uri,
-                    "thumbnail": ctx.voice_client.current_track.artwork_url
-                }
-            }
+            return ctx.voice_client.get_status(
+                True,
+                "resumed music",
+            )
         else:
             return {
                 "success": False,
@@ -124,15 +116,10 @@ class MusicControl(Module):
         check = MusicPlayer.check_voice_status(ctx)
         if check:
             return check
-        return {
-            "success": True,
-            "reason": "current playing track",
-            "current_playing_track": {
-                "title": ctx.voice_client.current_track.title,
-                "url": ctx.voice_client.current_track.uri,
-                "thumbnail": ctx.voice_client.current_track.artwork_url
-            }
-        }
+        return ctx.voice_client.get_status(
+            True,
+            "current playing track",
+        )
 
     @tool()
     async def queue(self, ctx: AIContext):
@@ -157,8 +144,27 @@ class MusicControl(Module):
                     "thumbnail": i.artwork_url
                 } for i in display_queue
             ],
-            "extra_queue_length": queue_len
+            "extra_queue_length": queue_len,
+            "player_info": ctx.voice_client.get_player_status_short()
         }
+
+    @tool()
+    async def set_loop(self, ctx: AIContext, loop: Literal["off", "track", "queue"]):
+        """
+        Set the loop for the current music.
+        - This function will set the loop for the current music in the voice channel.
+        - You MUST embed `current_playing_track` to display.
+        - You should give all information to user.
+        """
+        check = MusicPlayer.check_voice_status(ctx)
+        if check:
+            return check
+        ctx.voice_client.loop(loop)
+        return ctx.voice_client.get_status(
+            True,
+            "set loop to " + loop,
+        )
+
 
 async def setup(client):
     await client.add_module(MusicControl(client))
