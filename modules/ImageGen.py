@@ -17,11 +17,11 @@ class ImageGen(Module):
     @tool(
         prompt="Prompt for image generation",
         negative_prompt="Negative prompt for image generation",
-        width="Width of the image max: 4096 default: 1024",
-        height="Height of the image max: 4096 default: 1024",
+        width="Width of the image max: 4096",
+        height="Height of the image max: 4096",
     )
     async def generate_image(self, ctx: AIContext, prompt: str, negative_prompt: str,
-                             width: int = 1024, height: int = 1024):
+                             width: int, height: int):
         """
         Generate an image from a given prompt.
         - You MUST call `set_status` before using this tool.
@@ -29,6 +29,7 @@ class ImageGen(Module):
         - Prompt should be concise and clear.
         - Separate each key charter with a comma.
         - You not allow to generate image about NSFW content.
+        - Recommend aspect ratio is 16:9 or 9:16 or 1:1.
         - if you what to embed image file to message, you MUST follow the below format:
             ```
             attachment://{file_name}
