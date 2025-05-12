@@ -18,6 +18,7 @@ class MusicPlayer(Player[FClient]):
         self,
         track: Track | str, **kwargs: dict[str, str]
     ) -> None:
+        # update status and do more
         await super().play(track, **kwargs)
 
     async def play_track(self, track: Track):
