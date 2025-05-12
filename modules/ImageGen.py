@@ -10,10 +10,6 @@ from classs.AIContext import AIContext
 
 class ImageGen(Module):
 
-    headers = {
-        "Authorization": f"Bearer {os.getenv('HUGGINGFACE_TOKEN')}",
-    }
-
     @tool(
         prompt="Prompt for image generation",
         negative_prompt="Negative prompt for image generation",
@@ -39,6 +35,19 @@ class ImageGen(Module):
             attachment://image.png
             ```
         """
+
+        token = os.getenv("HUGGINGFACE_TOKEN")
+        modal = os.getenv("HUGGINGFACE_MODEL")
+        if not token or not modal:
+            return {
+                "success": False,
+                "reason": "Image generation is not enabled. Please contact the admin."
+            }
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+        }
+
         if width > 4096 or height > 4096:
             return {
                 "success": False,
@@ -52,8 +61,8 @@ class ImageGen(Module):
                 "negative_prompt": negative_prompt,
             }
         }
-        async with aiohttp.ClientSession(headers=self.headers) as session:
-            async with session.post("https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-3.5-large",
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.post(f"https://router.huggingface.co/hf-inference/models/{modal}",
                 json=data,
                 ) as r:
                 if r.ok:
