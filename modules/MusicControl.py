@@ -159,10 +159,29 @@ class MusicControl(Module):
         check = MusicPlayer.check_voice_status(ctx)
         if check:
             return check
-        ctx.voice_client.loop(loop)
+        return ctx.voice_client.loop(loop)
+
+    @tool()
+    async def set_volume(self, ctx: AIContext, volume: int):
+        """
+        Set the volume for the current music.
+        - This function will set the volume for the current music in the voice channel.
+        - The volume should be between 0 and 100.
+        - You MUST embed `current_playing_track` to display.
+        - You should give all information to user.
+        """
+        check = MusicPlayer.check_voice_status(ctx)
+        if check:
+            return check
+        if volume < 0 or volume > 100:
+            return {
+                "success": False,
+                "reason": "volume should be between 0 and 100"
+            }
+        await ctx.voice_client.set_volume(volume)
         return ctx.voice_client.get_status(
             True,
-            "set loop to " + loop,
+            f"set volume to {volume}% successfully",
         )
 
 
