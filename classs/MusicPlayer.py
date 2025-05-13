@@ -38,7 +38,7 @@ class MusicPlayer(Player[FClient]):
 
     async def play_track(self, track: Track):
         if self.current_track:
-            self.queue.append(self.current_track)
+            self.queue.append(track)
             return {
                 "success": True,
                 "reason": "added track to queue",
@@ -104,8 +104,10 @@ class MusicPlayer(Player[FClient]):
             await self.play(self.current_track)
 
         elif self.queue:
+            print(self.history, self.current_track, self.queue)
             self.history.append(self.current_track)
             self.current_track = self.queue.pop(0)
+            print(self.current_track)
             await self.stop()
             await self.play(self.current_track)
 
