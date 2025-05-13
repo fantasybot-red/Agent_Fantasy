@@ -104,10 +104,8 @@ class MusicPlayer(Player[FClient]):
             await self.play(self.current_track)
 
         elif self.queue:
-            print(self.history, self.current_track, self.queue)
             self.history.append(self.current_track)
             self.current_track = self.queue.pop(0)
-            print(self.current_track)
             await self.stop()
             await self.play(self.current_track)
 
@@ -125,7 +123,6 @@ class MusicPlayer(Player[FClient]):
             },
             "player_info": self.get_player_status_short()
         }
-
 
     async def previous(self):
         if self.loop_mode == "track":
@@ -191,7 +188,16 @@ class MusicPlayer(Player[FClient]):
         else:
             ctx.voice_client = await ctx.author.voice.channel.connect(cls=cls)
 
-        track = await ctx.voice_client.fetch_tracks(query, SearchType.YOUTUBE_MUSIC)
+        try:
+            track = await ctx.voice_client.fetch_tracks(query, SearchType.YOUTUBE_MUSIC)
+        except Exception as e:
+            await ctx.voice_client.disconnect()
+            return {
+                "success": False,
+                "reason": "error while fetching track",
+                "error": str(e)
+            }
+
         if not track:
             await ctx.voice_client.disconnect()
             return {
