@@ -6,6 +6,8 @@ WORKDIR /app
 # Copy the requirements file into the container
 COPY requirements.txt .
 
+RUN apt-get update && apt-get install -y --no-install-recommends git
+
 # Install the required packages
 RUN pip install --no-cache-dir -r requirements.txt
 
