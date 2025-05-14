@@ -1,10 +1,10 @@
+import os
 from dotenv import load_dotenv
 
-load_dotenv()
+if os.getenv('IS_DOCKER') is None:
+    load_dotenv()
 
 # Bot Core
-
-import os
 
 from classs import FClient
 

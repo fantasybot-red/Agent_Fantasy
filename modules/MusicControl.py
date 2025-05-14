@@ -165,7 +165,6 @@ class MusicControl(Module):
     async def set_volume(self, ctx: AIContext, volume: int):
         """
         Set the volume for the current music.
-        - This function will set the volume for the current music in the voice channel.
         - The volume should be between 0 and 100.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.
