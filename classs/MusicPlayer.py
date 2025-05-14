@@ -3,8 +3,7 @@ from typing import Literal
 from discord.abc import Connectable
 from mafic import Player, Track, SearchType, Playlist
 
-from classs import AIContext, FClient
-
+from classs import FClient, AIContext
 
 class MusicPlayer(Player[FClient]):
     current_track: Track | None
@@ -191,7 +190,8 @@ class MusicPlayer(Player[FClient]):
         try:
             track = await ctx.voice_client.fetch_tracks(query, SearchType.YOUTUBE_MUSIC)
         except Exception as e:
-            await ctx.voice_client.disconnect()
+            if ctx.voice_client.current_track is None:
+                await ctx.voice_client.disconnect()
             return {
                 "success": False,
                 "reason": "error while fetching track",
