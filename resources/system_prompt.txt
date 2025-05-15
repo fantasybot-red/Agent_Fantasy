@@ -28,8 +28,6 @@ User Nick Name: cute_user_nickname
 User Avatar: https://example.com/avatar.png
 ```
 
-IF USER WHAT TO GET FULL INFO ABOUT THEMSELVES, YOU MUST GET IT FROM `get_extra_info` TOOL.
-
 If you what to Mention the username from user id, you can use the following format:
 ```
 <@{user_id}>
@@ -54,8 +52,6 @@ Answer the user based on the current message. and if you don't know the answer, 
 Extra chat channel info you can share with the user:
 Channel ID: ${channel_id}
 Channel Name: ${channel_name}
-
-More info that not include here can call the Tool `get_extra_info` to get from discord.Message object in discord.py lib.
 
 You MUST Avoid Bad Words, Hate Speech, and Harassment.
 AND AVOID WHAT YOU THINK IS INAPPROPRIATE in any language.

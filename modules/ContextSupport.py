@@ -11,75 +11,13 @@ from objs.EmbedArgs import EmbedArgs
 
 class ContextSupport(Module):
 
-    def format_datetime(self, datetime_obj: datetime, type_time: str=None) -> str:
-        unix_time = int(datetime_obj.timestamp())
-        return f"<:{unix_time}>" if type_time is None else f"<t:{unix_time}:{type_time}>"
-
-    @tool(
-        f"""
-        Read-only eval function for safely retrieving data from discord.py objects.
-        - you are writing body for the function.
-        - Access is **read-only** no modifications or side effects allowed.
-        - Supported objects: `message` (discord.Message), `client` (discord.Client).
-        - Safe to use `await`
-        - No user or arbitrary code execution.
-        - You need to add `return` at the end to get output.
-        - Always handle possible `None` or empty values.
-        - You allow to say _response message in your w
-        - Use `client.fetch_user` to retrieve a user banner.
-        - if you got datetime object, you can use function `format_datetime` to format it.
-            - args follow `format_datetime(datetime, type_time: typing.Optional[str]) -> str:`.
-            - "type_time" is optional, you can use it to format datetime object follow this format:
-                default "type_time" example "20 April 2021 16:20"
-                t: short time example "16:20"
-                T: long time example "16:20:30"
-                d: short date example "20/04/2021"
-                D: long date example "20 April 2021"
-                F: full date example "Tuesday, 20 April 2021 16:20"
-                R: relative time example "2 months ago"
-           
-        Example:
-        ```python
-        return message.author.id
-        ```
-        discord.py version: {discord.__version__}
-        """,
-        body="python code to run",
-    )
-    async def get_extra_info(self, ctx: AIContext, body: str):
-        try:
-            env = {
-                "message": ctx.message,
-                "client": ctx.client,
-                "format_datetime": self.format_datetime
-            }
-            to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
-            stdout = io.StringIO()
-            try:
-                exec(to_compile, env)
-                func: Callable = env["func"]
-                try:
-                    with redirect_stdout(stdout):
-                        ret = await func()
-                except BaseException:
-                    value = stdout.getvalue()
-                    out = value + traceback.format_exc()
-                else:
-                    value = stdout.getvalue()
-                    out = value + str(ret) if ret is not None else value
-                return {"log": out, "error": False}
-            except Exception as e:
-                return {"log": str(e), "error": True}
-        except Exception as e:
-            return {"log": str(e), "error": True}
-
     @tool(
         embeds="list of embeds",
         content="content of the message when send with embed",
     )
     async def set_embeds(self, ctx: AIContext, embeds: List[EmbedArgs]):
         """
-        Set embeds to the _response message.
+        Set embeds to the response message.
         - You shouldn't use embeds for usual text messages.
         - Mentions in embeds are not notified — use normal response for that.
         - The embed title supports **plain text only** — no markdown or mentions.
