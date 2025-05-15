@@ -12,8 +12,7 @@ from objs.EmbedArgs import EmbedArgs
 class ContextSupport(Module):
 
     @tool(
-        embeds="list of embeds",
-        content="content of the message when send with embed",
+        embeds="list of embeds"
     )
     async def set_embeds(self, ctx: AIContext, embeds: List[EmbedArgs]):
         """
