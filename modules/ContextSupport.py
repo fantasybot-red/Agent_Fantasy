@@ -26,12 +26,14 @@ class ContextSupport(Module):
         - You MUST use `image` or `thumbnail` to display image link inside embed.
         - You need at least one embed to send a message.
         - You can set up to 10 embeds.
-        - You JUST NEED TO CALL 1 TIME to set embeds.
+        - You Only Allow to set embeds 1 time.
         """
         if not len(embeds):
             return {"reason": "there are not embeds to set", "success": False}
-        if len(ctx.embeds) + len(embeds) > 10:
-            return {"reason": "there are too many embeds to set", "success": False}
+        if len(embeds) > 10:
+            return {"reason": "too many embeds to set", "success": False}
+        if ctx.embeds:
+            return {"reason": "embeds already set", "success": False}
         ctx.embeds = [discord.Embed.from_dict(embed) for embed in embeds]
         return {"success": True, "embeds_count": len(ctx.embeds), "reason": f"{len(embeds)} embeds add successfully"}
 
