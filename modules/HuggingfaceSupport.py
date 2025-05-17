@@ -81,6 +81,7 @@ class HuggingfaceSupport(Module):
         - You MUST call `set_status` before using this tool.
         - Prompt MUST be in English.
         - Prompt should be concise and clear.
+        - Do not add extra information in the prompt like "anime", "realistic", "photo", etc.
         - Prompt Must describe what action you want to do in the video.
         - You not allow to generate Video about NSFW content.
         - Embed is not supported.
