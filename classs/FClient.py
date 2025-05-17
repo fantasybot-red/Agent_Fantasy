@@ -10,10 +10,11 @@ from mafic import NodePool, TrackEndEvent, EndReason, TrackExceptionEvent
 from openai import AsyncAzureOpenAI, BadRequestError, AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
-
+from huggingface_hub import AsyncInferenceClient
 
 class FClient(discord.Client):
     openai: AsyncAzureOpenAI | AsyncOpenAI
+    huggingface: AsyncInferenceClient | None
     system_prompt: Template
     emojis: dict = {}
     functions = {}
@@ -22,6 +23,7 @@ class FClient(discord.Client):
     def __init__(self, **options):
         intents = discord.Intents.all()
         self.load_open_ai(**options)
+        self.load_huggingface()
         with open("resources/system_prompt.txt", "r") as f:
             self.system_prompt = Template(
                 f.read()
@@ -45,6 +47,14 @@ class FClient(discord.Client):
             self.openai = AsyncOpenAI(
                 **options
             )
+
+    def load_huggingface(self):
+        if os.getenv('HUGGINGFACE_TOKEN'):
+            self.huggingface = AsyncInferenceClient(
+                token=os.getenv('HUGGINGFACE_TOKEN')
+            )
+        else:
+            self.huggingface = None
 
     def get_system_prompt(self, message: discord.Message, **kwargs):
         return self.system_prompt.safe_substitute(

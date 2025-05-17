@@ -14,7 +14,7 @@ class AIContext:
     author: User | Member
     embeds: List[Embed]
     _response: str
-    _response_message: Message | None
+    _response_message: Message
     _last_edit: int
 
     def __init__(self, message: Message, client: FClient):
@@ -27,11 +27,26 @@ class AIContext:
         self.embeds = []
         self._response_message = None
         self._last_edit = 0
-        self.attachments_check = False
+        self.attachments_update = False
+        self.embeds_update = False
 
-    async def add_attachment(self, attachment: discord.File):
+    def _gen_kwargs(self):
+        kwargs = {}
+        if self.embeds_update:
+            kwargs["embeds"] = self.embeds
+            self.embeds_update = False
+        if self.attachments_update:
+            kwargs["attachments"] = self.attachments
+            self.attachments_update = False
+        return kwargs
+
+    def add_attachment(self, attachment: discord.File):
         self.attachments.append(attachment)
-        self.attachments_check = True
+        self.attachments_update = True
+
+    def set_embeds(self, embeds: List[Embed]):
+        self.embeds.extend(embeds)
+        self.embeds_update = True
 
     async def add_response(self, response: str):
         self._response += response
@@ -39,37 +54,19 @@ class AIContext:
             return
         if time.time() - self._last_edit > 3 and self._response.strip():
             temp_content = self._response + self.client.emojis["typing"]
-            if self._response_message is None:
-                if self.attachments_check:
-                    self._response_message = await self.message.reply(temp_content, embeds=self.embeds, files=self.attachments)
-                    self.attachments_check = False
-                else:
-                    self._response_message = await self.message.reply(temp_content, embeds=self.embeds)
-            else:
-                if self.attachments_check:
-                    await self._response_message.edit(content=temp_content, embeds=self.embeds, attachments=self.attachments)
-                    self.attachments_check = False
-                else:
-                    await self._response_message.edit(content=temp_content, embeds=self.embeds)
+            kwargs = self._gen_kwargs()
+            await self._response_message.edit(content=temp_content, **kwargs)
             self._last_edit = time.time()
 
     async def start_response(self):
-        if self._response_message is None:
-            self._response_message = await self.message.reply("-# " + self.client.emojis["typing"])
-        else:
-            await self._response_message.edit(content="-# " + self.client.emojis["typing"])
+        self._response_message = await self.message.reply("-# " + self.client.emojis["typing"])
 
     async def finish_response(self):
         if not self._response.strip():
             return
-        if self._response_message is None:
-            await self.message.reply(self._response, embeds=self.embeds)
-        else:
-            await self._response_message.edit(content=self._response, embeds=self.embeds)
+        kwargs = self._gen_kwargs()
+        await self._response_message.edit(content=self._response, **kwargs)
 
     async def set_status(self, status: str):
         status = self.client.emojis["loading"] + " " + status
-        if self._response_message is None:
-            self._response_message = await self.message.reply(status)
-        else:
-            await self._response_message.edit(content=status)
+        await self._response_message.edit(content=status)

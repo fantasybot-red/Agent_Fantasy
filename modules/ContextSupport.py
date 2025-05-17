@@ -1,11 +1,7 @@
-import io
-import textwrap
-import traceback
-from datetime import datetime
-from typing import List, Callable
+from typing import List
 import discord
-from contextlib import redirect_stdout
-from classs import Module, tool, AIContext
+from classs import Module, tool
+from classs.AIContext import AIContext
 from objs.EmbedArgs import EmbedArgs
 
 
@@ -17,8 +13,8 @@ class ContextSupport(Module):
     async def set_embeds(self, ctx: AIContext, embeds: List[EmbedArgs]):
         """
         Set embeds to the response message.
-        - You shouldn't use embeds for usual text messages.
-        - Mentions in embeds are not notified — use normal response for that.
+        - Embed Only Use display information to user.
+        - Mentions in embeds are not notified — use normal text to mention users.
         - The embed title supports **plain text only** — no markdown or mentions.
         - Always remember image link is not display inside embed content.
         - Image link is not display inside embed content.
@@ -33,7 +29,7 @@ class ContextSupport(Module):
             return {"reason": "too many embeds to set", "success": False}
         if ctx.embeds:
             return {"reason": "embeds already set", "success": False}
-        ctx.embeds = [discord.Embed.from_dict(embed) for embed in embeds]
+        ctx.set_embeds([discord.Embed.from_dict(embed) for embed in embeds])
         return {"success": True, "embeds_count": len(ctx.embeds), "reason": f"{len(embeds)} embeds add successfully"}
 
     @tool(

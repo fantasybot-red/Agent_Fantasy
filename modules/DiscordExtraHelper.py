@@ -1,7 +1,5 @@
 import datetime
 
-from discord.app_commands import guilds
-
 from classs import Module, tool
 from classs.AIContext import AIContext
 
@@ -93,7 +91,7 @@ class DiscordExtraHelper(Module):
     @tool()
     async def get_current_channel(self, ctx: AIContext):
         """
-        Get current channel information.
+        Get current chat channel information.
         This function will get current channel information.
         - You should embed the result in a nice format.
         - You MUST provide all the information about the channel.
