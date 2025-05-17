@@ -83,7 +83,7 @@ class HuggingfaceSupport(Module):
         - Prompt should be concise and clear.
         - Prompt Must describe what action you want to do in the video.
         - You not allow to generate Video about NSFW content.
-        - Video is not embed support in discord.
+        - Embed is not supported.
         """
 
         modal = os.getenv("HUGGINGFACE_MODEL_VIDEO")
@@ -94,7 +94,7 @@ class HuggingfaceSupport(Module):
             }
 
         new_client = AsyncInferenceClient(
-            token=os.getenv('HUGGINGFACE_TOKEN'),
+            token=self.client.huggingface.token,
             provider="fal-ai"
         )
 
