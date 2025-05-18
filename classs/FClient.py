@@ -153,9 +153,10 @@ class FClient(discord.Client):
             "User ID": message.author.id,
             "User Name": message.author.name
         }
-        if message.author.nick:
-            context["User Nickname"] = message.author.nick
-            context["Message ID"] = message.id
+        if isinstance(message.author, discord.Member):
+            if message.author.nick:
+                context["User Nickname"] = message.author.nick
+                context["Message ID"] = message.id
         if message.reference:
             try:
                 reply_message = await message.channel.fetch_message(message.reference.message_id)
