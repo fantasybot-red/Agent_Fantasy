@@ -151,12 +151,12 @@ class FClient(discord.Client):
     async def fomart_user_message(self, message: discord.Message) -> str:
         context = {
             "User ID": message.author.id,
-            "User Name": message.author.name
+            "User Name": message.author.name,
+            "Message ID": message.id
         }
         if isinstance(message.author, discord.Member):
             if message.author.nick:
                 context["User Nickname"] = message.author.nick
-                context["Message ID"] = message.id
         if message.reference:
             try:
                 reply_message = await message.channel.fetch_message(message.reference.message_id)
