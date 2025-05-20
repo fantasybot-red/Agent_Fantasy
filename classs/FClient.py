@@ -5,12 +5,14 @@ from typing import List
 
 import discord
 from string import Template
+
 from classs.AIContext import AIContext
 from mafic import NodePool, TrackEndEvent, EndReason, TrackExceptionEvent
 from openai import AsyncAzureOpenAI, BadRequestError, AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
 from huggingface_hub import AsyncInferenceClient
+
 
 class FClient(discord.Client):
     openai: AsyncAzureOpenAI | AsyncOpenAI
@@ -66,7 +68,8 @@ class FClient(discord.Client):
             **kwargs
         )
 
-    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: AIContext) -> (AIContext, discord.Message):
+    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: AIContext) -> (AIContext,
+                                                                                                            discord.Message):
         try:
             response = await self.openai.chat.completions.create(
                 model=os.getenv('OPENAI_API_MODAL'),
@@ -215,6 +218,24 @@ class FClient(discord.Client):
         )
         await ctx.finish_response()
 
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState,
+                                    after: discord.VoiceState):
+        player = member.guild.voice_client
+        if not player or before.channel is None or before.channel == after.channel:
+            return
+
+        if member == self.user:
+            if after.channel and len([m for m in after.channel.members if not m.bot]):
+                return
+
+        elif self.user not in before.channel.members:
+            return
+
+        elif len([m for m in before.channel.members if not m.bot]):
+            return
+
+        await player.disconnect()
+
     async def on_ready(self):
         await self.load_lavalink_nodes()
         print(f'We have logged in as {self.user}')
@@ -227,4 +248,3 @@ class FClient(discord.Client):
 
     async def on_track_exception(self, event: TrackExceptionEvent):
         await event.player.skip()
-
