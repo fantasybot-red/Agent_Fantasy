@@ -13,8 +13,11 @@ from openai.types.chat import ChatCompletionMessageParam
 from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
 from huggingface_hub import AsyncInferenceClient
 
+from classs.MCPManager import MCPManager
+
 
 class FClient(discord.Client):
+    mcp_manager: MCPManager
     openai: AsyncAzureOpenAI | AsyncOpenAI
     huggingface: AsyncInferenceClient | None
     system_prompt: Template
@@ -26,6 +29,7 @@ class FClient(discord.Client):
         intents = discord.Intents.all()
         self.load_open_ai(**options)
         self.load_huggingface()
+        self.mcp_manager = MCPManager()
         with open("resources/system_prompt.txt", "r") as f:
             self.system_prompt = Template(
                 f.read()
@@ -174,6 +178,8 @@ class FClient(discord.Client):
 
     async def setup_hook(self) -> None:
         await self.load_modules()
+        await self.mcp_manager.init_mcp()
+        self.functions.update(await self.mcp_manager.get_tools())
         self.functions_json_schema.extend([f.to_dict() for f in self.functions.values()])
 
     async def load_lavalink_nodes(self):
