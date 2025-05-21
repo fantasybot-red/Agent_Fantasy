@@ -13,17 +13,15 @@ class ContextSupport(Module):
     async def set_embeds(self, ctx: AIContext, embeds: List[EmbedArgs]):
         """
         Set embeds to the response message.
-        - If response are summarizer or responder will be long so you need to use embeds.
-        - You allow to split long response to multiple embeds.
-        - Use embed to display information in a clear and beautiful way.
-        - Mentions in embeds are not notified — use normal text to mention users.
-        - The embed title supports **plain text only** — no markdown or mentions.
-        - Always remember image link is not display inside embed content.
-        - Image link is not display inside embed content.
-        - You MUST use `image` or `thumbnail` to display image link inside embed.
-        - You need at least one embed to send a message.
-        - You can set up to 10 embeds.
-        - You Only have one chance to set embeds.
+        Embed Usage Guidelines:
+        - Always include at least one embed in the response.
+        - Use embeds for long replies like summaries or detailed content.
+        - Do not repeat embed content in the message text.
+        - Split long content across up to 10 embeds if needed.
+        - Embed titles allow plain text only (no mentions or markdown).
+        - Use normal message text to mention users if notification is needed.
+        - To display an image, use the 'image' or 'thumbnail' (URLs in content won’t show images).
+        - You only have one chance to set embeds.
         """
 
         if not len(embeds):
