@@ -79,6 +79,7 @@ class MCPManager:
                                     f"Duplicate function name: {tool.name} host {name}. Please check your environment variables."
                                 )
                             functions[tool.name] = MCPFunction(tool, name)
+                print(f"Loaded {len(functions)} functions from {name}")
             except Exception:
                 traceback.print_exc()
         return functions
