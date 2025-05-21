@@ -15,7 +15,7 @@ class ContextSupport(Module):
         Set embeds to the response message.
         Embed Usage Guidelines:
         - Always include at least one embed in the response.
-        - Use embeds for long replies like summaries or detailed content.
+        - Use embeds for long replies like summaries or detailed content longer than 2000 char.
         - Do not repeat embed content in the message text.
         - Split long content across up to 10 embeds if needed.
         - Embed titles allow plain text only (no mentions or markdown).
