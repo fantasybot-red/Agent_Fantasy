@@ -48,7 +48,10 @@ class SearchHelper(Module):
                         data_temp = {"title": i["title"], "link": i["url"], "description": i["content"], "type": i["type"]}
                         data = data_temp
                     list_result.append(data)
-        return list_result
+        return {
+            "success": True,
+            "data": list_result
+        }
 
 
 async def setup(client):
