@@ -13,7 +13,7 @@ from openai.types.chat import ChatCompletionMessageParam
 from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
 from huggingface_hub import AsyncInferenceClient
 
-from classs.MCPManager import MCPManager
+from classs.MCPManager import MCPManager, MCPFunction
 
 
 class FClient(discord.Client):
@@ -72,8 +72,7 @@ class FClient(discord.Client):
             **kwargs
         )
 
-    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: AIContext) -> (AIContext,
-                                                                                                            discord.Message):
+    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: AIContext) -> (AIContext, discord.Message):
         try:
             response = await self.openai.chat.completions.create(
                 model=os.getenv('OPENAI_API_MODAL'),
@@ -131,7 +130,7 @@ class FClient(discord.Client):
                 print(f"Tool call: {tool_call.function.name} with args: {args}, error: {e}")
             messages.append({
                 "role": "tool",
-                "content": json.dumps(result),
+                "content": result if isinstance(result, list) else json.dumps(result),
                 "tool_call_id": tool_call.id,
             })
         return await self.process_stream_response(messages, ctx)
@@ -178,7 +177,6 @@ class FClient(discord.Client):
 
     async def setup_hook(self) -> None:
         await self.load_modules()
-        await self.mcp_manager.init_mcp()
         self.functions.update(await self.mcp_manager.get_tools())
         self.functions_json_schema.extend([f.to_dict() for f in self.functions.values()])
 
@@ -210,19 +208,17 @@ class FClient(discord.Client):
             return
 
         ctx = AIContext(message, self)
-        await ctx.start_response()
-        messages = await self.get_messages_history(message)
+        async with ctx:
+            messages = await self.get_messages_history(message)
+            messages.insert(0, {
+                "role": "system",
+                "content": self.get_system_prompt(message)
+            })
 
-        messages.insert(0, {
-            "role": "system",
-            "content": self.get_system_prompt(message)
-        })
-
-        ctx, message_response = await self.process_stream_response(
-            messages,
-            ctx
-        )
-        await ctx.finish_response()
+            await self.process_stream_response(
+                messages,
+                ctx
+            )
 
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState,
                                     after: discord.VoiceState):

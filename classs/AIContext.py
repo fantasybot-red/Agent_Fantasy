@@ -1,3 +1,7 @@
+import base64
+import io
+import mimetypes
+import os
 import time
 from typing import List
 
@@ -12,7 +16,6 @@ class AIContext:
     voice_client: MusicPlayer
     client: FClient
     author: User | Member
-    embeds: List[Embed]
     _response: str
     _response_message: Message
     _last_edit: int
@@ -20,15 +23,29 @@ class AIContext:
     def __init__(self, message: Message, client: FClient):
         self.message = message
         self.author = message.author
-        self.voice_client = message.guild.voice_client
         self.client = client
+        self.voice_client = message.guild.voice_client
+
+        self.mcp_session = client.mcp_manager.create_session()
+
         self._response = ""
-        self.attachments = []
-        self.embeds = []
         self._response_message = None
         self._last_edit = 0
+
+        self.attachments = []
+        self.cache_attachments = []
+        self.embeds = []
         self.attachments_update = False
         self.embeds_update = False
+
+    async def __aenter__(self):
+        await self.start_response()
+        await self.mcp_session.__aenter__()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.finish_response()
+        await self.mcp_session.__aexit__(exc_type, exc_val, exc_tb)
 
     def _gen_kwargs(self):
         kwargs = {}
@@ -39,6 +56,24 @@ class AIContext:
             kwargs["attachments"] = self.attachments
             self.attachments_update = False
         return kwargs
+
+    def add_temp_attachment(self, content: str, content_type: str):
+        file_id = os.urandom(16).hex()
+        file_ext = mimetypes.guess_extension(content_type) or ""
+        filename = file_id+file_ext
+        content = base64.b64decode(content)
+        file = discord.File(io.BytesIO(content), filename=filename)
+        self.cache_attachments.append(file)
+        return filename
+
+    def move_temp_attachments(self, filename: str):
+        for attachment in self.cache_attachments:
+            if attachment.filename == filename:
+                self.attachments.append(attachment)
+                self.cache_attachments.remove(attachment)
+                self.attachments_update = True
+                return attachment.filename
+        return None
 
     def add_attachment(self, attachment: discord.File):
         self.attachments.append(attachment)

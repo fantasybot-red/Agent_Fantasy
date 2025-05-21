@@ -41,12 +41,27 @@ class ContextSupport(Module):
         - You can use status to show what you're doing if you're using tool.
         - Status allow markdown and mentions.
         - Status must be short and clear.
+        - Status should be less than 100 characters or more but not too long.
         - You MUST use `set_status` before using tool except set data to the message.
         - You not allow to say tool name in status.
         - You don't need to set status if you're not using tool.
         """
         await ctx.set_status(status)
         return {"success": True, "reason": "status set successfully"}
+
+    @tool(
+        filename="Name of file in temporary attachments",
+    )
+    async def move_temp_attachment(self, ctx: AIContext, filename: str):
+        """
+        Add file in temporary attachments to the message.
+        - Temporary attachments are files that are not sent to the message.
+        - Not all files in temporary should be sent to the message.
+        """
+        filename = ctx.move_temp_attachments(filename)
+        if filename is None:
+            return {"reason": "file not found in temporary attachments", "success": False}
+        return {"success": True, "filename": filename, "reason": f"file {filename} moved to message successfully"}
 
 
 async def setup(client):

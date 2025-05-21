@@ -1,21 +1,19 @@
 import os
-import asyncio
 import traceback
-from typing import Dict
-
+from typing import Dict, Any, List
 from mcp import ClientSession, Tool
 from mcp.client.sse import sse_client
 
+from classs.AIContext import AIContext
 
 class MCPFunction:
     name: str
-    client: ClientSession
 
-    def __init__(self, client: ClientSession, tool: Tool):
+    def __init__(self, tool: Tool, client_name: str):
         self.name = tool.name
         self.description = tool.description
         self.inputSchema = tool.inputSchema
-        self.client = client
+        self.client_name = client_name
 
     def to_dict(self):
         parameters = self.inputSchema.copy()
@@ -29,16 +27,26 @@ class MCPFunction:
                     }
                 }
 
-    async def call(self, _ctx, **kwargs):
+    async def call(self, ctx: AIContext, **kwargs):
         """
         Call the function with the given context and arguments.
         """
-        data = await self.client.call_tool(self.name, kwargs)
-        return data.model_dump() # make data to dict and jsonable
+        data = await ctx.mcp_session.call_tool(self, kwargs)
+        raw_data = data.model_dump()
+        content = []
+        for message in raw_data["content"]:
+            if message["type"] == "image":
+                filename = ctx.add_temp_attachment(message["data"], message["mimeType"])
+                content.append({
+                    "type": "text",
+                    "text": f"Image \"{filename}\" added to temporary attachments.",
+                })
+            else:
+                content.append(message)
+        return content
 
 
 class MCPManager:
-    mcp_client: Dict[str, ClientSession] = {}
     mcp_host: Dict[str, str] = {}
 
     def __init__(self):
@@ -56,34 +64,68 @@ class MCPManager:
 
     async def get_tools(self) -> list[MCPFunction]:
         functions = {}
-        for name, client in self.mcp_client.items():
-            tool_list = await client.list_tools()
-            for tool in tool_list.tools:
-                if tool.name in functions:
-                    raise EnvironmentError(
-                        f"Duplicate function name: {tool.name} host {name}. Please check your environment variables."
-                    )
-                functions[tool.name] = MCPFunction(client, tool)
+        for name, url in self.mcp_host.items():
+            stream_client = sse_client(
+                url=url
+            )
+            try:
+                async with stream_client as (read, write):
+                    async with ClientSession(read, write) as session:
+                        await session.initialize()
+                        tool_list = await session.list_tools()
+                        for tool in tool_list.tools:
+                            if tool.name in functions:
+                                raise EnvironmentError(
+                                    f"Duplicate function name: {tool.name} host {name}. Please check your environment variables."
+                                )
+                            functions[tool.name] = MCPFunction(tool, name)
+            except Exception:
+                traceback.print_exc()
         return functions
 
-    async def init_mcp(self):
-        for name, url in self.mcp_host.items():
-            startup_event = asyncio.Event()
-            asyncio.create_task(self.start_mcp(name, url, startup_event))
-            await startup_event.wait()  # Wait for the startup event to be set
+    def create_session(self):
+        """
+        Create a new session for the given client.
+        """
+        return MCPSession(self)
 
-    async def start_mcp(self, name: str, url: str, startup_event: asyncio.Event):
+class MCPSession:
+    clients: Dict[str, List[ClientSession | Any]]
+
+    def __init__(self, manager: MCPManager):
+        self.manager = manager
+        self.clients = {}
+
+    async def get_client_session(self, name: str):
+        if name in self.clients:
+            return self.clients[name][0]
+        url = self.manager.mcp_host[name]
         stream_client = sse_client(
             url=url
         )
+        read, write = await stream_client.__aenter__()
+        session = await ClientSession(read, write).__aenter__()
+        await session.initialize()
+        self.clients[name] = [session, stream_client]
+        return session
+
+    async def call_tool(self, function: MCPFunction, kwargs: dict):
+        client = await self.get_client_session(function.client_name)
         try:
-            async with stream_client as (read, write):
-                async with ClientSession(read, write) as session:
-                    await session.initialize()
-                    startup_event.set()
-                    self.mcp_client[name] = session
-                    await asyncio.Event().wait()  # Keep the session alive
-        except Exception:
+            data = await client.call_tool(function.name, kwargs)
+            return data
+        except Exception as e:
             traceback.print_exc()
-            startup_event.set() # Set the event even if there is an error to avoid deadlock
+            raise e
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        for transport, client in self.clients.values():
+            await transport.__aexit__(exc_type, exc_val, exc_tb)
+            await client.__aexit__(exc_type, exc_val, exc_tb)
+
+
+
 
