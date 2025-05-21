@@ -17,7 +17,7 @@ class MCPFunction:
 
     def to_dict(self):
         parameters = self.inputSchema.copy()
-        del parameters["$schema"]
+        parameters.pop("$schema", None)
         return {
                     "type": "function",
                     "function": {
