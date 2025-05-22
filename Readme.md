@@ -3,6 +3,7 @@
 ---
 This project make to show that AI can be control discord bot and do more than just a chatbot.
 
+This a educational project only is not intended for production use.
 ## Features
 - Unlimit Extension (Using MCP SSE to extend the bot tool)
 - Dynamicly Module
