@@ -43,8 +43,8 @@ class ContextSupport(Module):
         - You can use status to show what you're doing if you're using tool.
         - Status allow markdown and mentions.
         - Status must be short and clear.
-        - Status should be less than 100 characters or more but not too long.
-        - You MUST use `set_status` before using tool except set data to the message.
+        - Status should be less than 200 characters or more but not too long.
+        - You MUST use `set_status` before using any tool.
         - You not allow to say tool name in status.
         - You don't need to set status if you're not using tool.
         """
