@@ -13,7 +13,7 @@ from openai.types.chat import ChatCompletionMessageParam
 from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
 from huggingface_hub import AsyncInferenceClient
 
-from classs.MCPManager import MCPManager, MCPFunction
+from classs.MCPManager import MCPManager
 
 
 class FClient(discord.Client):
@@ -138,7 +138,7 @@ class FClient(discord.Client):
     async def get_messages_history(self, message: discord.Message):
         messages = [{
             "role": "user",
-            "content": await  self.fomart_user_message(message)
+            "content": await  self.format_user_message(message)
         }]
         async for msg in message.channel.history(limit=10, before=message):
             if msg.author == self.user:
@@ -149,12 +149,12 @@ class FClient(discord.Client):
             elif not msg.author.bot:
                 messages.append({
                     "role": "user",
-                    "content": await self.fomart_user_message(msg)
+                    "content": await self.format_user_message(msg)
                 })
         messages.reverse()
         return messages
 
-    async def fomart_user_message(self, message: discord.Message) -> str:
+    async def format_user_message(self, message: discord.Message) -> str:
         context = {
             "User ID": message.author.id,
             "User Name": message.author.name,
@@ -236,7 +236,7 @@ class FClient(discord.Client):
         elif len([m for m in before.channel.members if not m.bot]):
             return
 
-        await player.disconnect()
+        await player.disconnect(force=True)
 
     async def on_ready(self):
         await self.load_lavalink_nodes()

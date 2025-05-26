@@ -237,8 +237,8 @@ class MusicPlayer(Player[FClient]):
         }
 
     def get_player_status(self):
-        position = self._fomart_ms(self.position)
-        song_len = self._fomart_ms(self.current_track.length)
+        position = self._format_ms(self.position)
+        song_len = self._format_ms(self.current_track.length)
         data = self.get_player_status_short()
         data["track_length"] = song_len
         data["current_time"] = position
@@ -250,9 +250,9 @@ class MusicPlayer(Player[FClient]):
             "loop_mode": self.loop_mode,
         }
 
-    def _fomart_ms(self, ms: int) -> str:
+    def _format_ms(self, ms: int) -> str:
         """
-        Fomart ms to mm:ss
+        Format ms to mm:ss
         """
         seconds = (ms // 1000) % 60
         minutes = (ms // (1000 * 60)) % 60

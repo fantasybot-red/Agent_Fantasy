@@ -6,6 +6,7 @@ from mcp.client.sse import sse_client
 
 from classs.AIContext import AIContext
 
+
 class MCPFunction:
     name: str
 
@@ -19,13 +20,13 @@ class MCPFunction:
         parameters = self.inputSchema.copy()
         parameters.pop("$schema", None)
         return {
-                    "type": "function",
-                    "function": {
-                        "name": self.name,
-                        "description": self.description,
-                        "parameters": parameters
-                    }
-                }
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": parameters
+            }
+        }
 
     async def call(self, ctx: AIContext, **kwargs):
         """
@@ -36,11 +37,21 @@ class MCPFunction:
         content = []
         for message in raw_data["content"]:
             if message["type"] == "image":
-                filename = ctx.add_temp_attachment(message["data"], message["mimeType"])
-                content.append({
-                    "type": "text",
-                    "text": f"Image \"{filename}\" added to temporary attachments.",
-                })
+                data = message["data"]
+                mime_type = message["mimeType"]
+                filename = ctx.add_temp_attachment(data, mime_type)
+                content.extend([
+                    {
+                        "type": "text",
+                        "text": f"Image \"{filename}\" added to temporary attachments. To send this use `move_temp_attachment` tool.",
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:${mime_type};base64,${data}"
+                        }
+                    }
+                ])
             else:
                 content.append(message)
         return content
@@ -90,6 +101,7 @@ class MCPManager:
         """
         return MCPSession(self)
 
+
 class MCPSession:
     clients: Dict[str, List[ClientSession | Any]]
 
@@ -126,7 +138,3 @@ class MCPSession:
         for transport, client in self.clients.values():
             await transport.__aexit__(exc_type, exc_val, exc_tb)
             await client.__aexit__(exc_type, exc_val, exc_tb)
-
-
-
-

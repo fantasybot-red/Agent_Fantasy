@@ -6,7 +6,7 @@ import textwrap
 from .AIContext import AIContext
 from .FClient import FClient
 from concurrent.futures import ThreadPoolExecutor
-from typing import Literal, get_args, Any, Tuple, get_origin, Dict, Optional, Union
+from typing import Literal, get_args, Any, Tuple, get_origin, Dict, Union
 
 __all__ = ["Module", "tool", "FunctionMeta"]
 
