@@ -48,7 +48,7 @@ class MCPFunction:
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:${mime_type};base64,${data}"
+                            "url": f"data:{mime_type};base64,{data}"
                         }
                     }
                 ])
