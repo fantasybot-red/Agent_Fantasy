@@ -40,16 +40,10 @@ class MCPFunction:
                 data = message["data"]
                 mime_type = message["mimeType"]
                 filename = ctx.add_temp_attachment(data, mime_type)
-                content.extend([
+                content.append([
                     {
                         "type": "text",
                         "text": f"Image \"{filename}\" added to temporary attachments. To send this use `move_temp_attachment` tool.",
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:{mime_type};base64,{data}"
-                        }
                     }
                 ])
             else:
