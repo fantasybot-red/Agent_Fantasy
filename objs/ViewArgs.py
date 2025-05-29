@@ -9,6 +9,13 @@ class ButtonArgs(TypedDict):
     - If Link is provided, style must be "link".
     - Emoji is show next to the button label.
     - If emoji is provided, don't provide emoji in label.
+
+    Style color of the button follows:
+    - "primary" for blue,
+    - "secondary" for gray,
+    - "success" for green,
+    - "danger" for red,
+    - "link" for a link button.
     """
     label: str
     style: Literal["primary", "secondary", "success", "danger", "link"]
@@ -43,6 +50,8 @@ class ViewArgs(TypedDict):
     Can not have Empty Selects or Buttons at the same time.
     - For Many choices, use Selects.
     - For Command like actions, use Buttons.
+    - The Button order follows left to right, top to bottom.
+    - Selects are always at the bottom below the buttons.
     """
     selects: List[SelectArgs]
     buttons: List[ButtonArgs]
