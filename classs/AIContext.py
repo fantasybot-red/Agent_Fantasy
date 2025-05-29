@@ -13,7 +13,7 @@ from classs import FClient
 
 class AIContext:
     message: Message
-    voice_client: MusicPlayer
+    voice_client: MusicPlayer | None
     client: FClient
     author: User | Member
     _response: str
@@ -25,7 +25,6 @@ class AIContext:
         self.author = message.author
         self.client = client
         self.voice_client = message.guild.voice_client
-
         self.mcp_session = client.mcp_manager.create_session()
 
         self._response = ""
@@ -35,6 +34,8 @@ class AIContext:
         self.attachments = []
         self.cache_attachments = []
         self.embeds = []
+        self.view = None
+        self.view_update = False
         self.attachments_update = False
         self.embeds_update = False
 
@@ -55,6 +56,9 @@ class AIContext:
         if self.attachments_update:
             kwargs["attachments"] = self.attachments
             self.attachments_update = False
+        if self.view_update:
+            kwargs["view"] = self.view
+            self.view_update = False
         return kwargs
 
     def add_temp_attachment(self, content: str, content_type: str):
@@ -83,6 +87,10 @@ class AIContext:
         self.embeds.extend(embeds)
         self.embeds_update = True
 
+    def set_view(self, view: discord.ui.View):
+        self.view = view
+        self.view_update = True
+
     async def add_response(self, response: str):
         self._response += response
         if not self._response.strip():
@@ -94,6 +102,8 @@ class AIContext:
             self._last_edit = time.time()
 
     async def start_response(self):
+        if self._response_message is not None:
+            return
         self._response_message = await self.message.reply("-# " + self.client.emojis["typing"])
 
     async def finish_response(self):

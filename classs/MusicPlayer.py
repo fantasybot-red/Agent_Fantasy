@@ -10,7 +10,7 @@ class MusicPlayer(Player[FClient]):
     queue: list[Track]
     history: list[Track]
     volume: int
-    loop_mode: Literal["off", "track", "all"]
+    loop_mode: Literal["off", "track", "queue"]
 
     def __init__(self, client: FClient, channel: Connectable) -> None:
         super().__init__(client, channel)
@@ -94,7 +94,7 @@ class MusicPlayer(Player[FClient]):
             await self.stop()
             await self.play(self.current_track)
 
-        elif self.loop_mode == "all":
+        elif self.loop_mode == "queue":
             if not self.queue:
                 self.queue, self.history = self.history, []
             self.history.append(self.current_track)
@@ -130,7 +130,7 @@ class MusicPlayer(Player[FClient]):
                 "reason": "loop mode is track, cannot previous"
             }
 
-        if self.history or (self.loop_mode == "all" and self.queue):
+        if self.history or (self.loop_mode == "queue" and self.queue):
             self.queue.insert(0, self.current_track)
             self.current_track = self.history.pop() if self.history else self.queue.pop()
             await self.stop()
@@ -208,12 +208,12 @@ class MusicPlayer(Player[FClient]):
             return await ctx.voice_client.play_playlist(track)
         return await ctx.voice_client.play_track(track[0])
 
-    def loop(self, mode: Literal["off", "track", "all"]):
+    def loop(self, mode: Literal["off", "track", "queue"]):
         """
         Set the loop mode of the player.
-        :param mode: Loop mode (off, track, all)
+        :param mode: Loop mode (off, track, queue)
         """
-        if mode not in ["off", "track", "all"]:
+        if mode not in ["off", "track", "queue"]:
             return {
                 "success": False,
                 "reason": "invalid loop mode"

@@ -93,6 +93,8 @@ class FunctionMeta:
             type_real = get_args(type_class)[0]
             type_schema = self._transform_type_to_json_type(type_real)
         elif is_typeddict(type_class):
+            if type_class.__doc__ is not None:
+                type_schema["description"] = textwrap.dedent(type_class.__doc__)
             type_schema["type"] = "object"
             type_schema["properties"] = {}
             for key, value in type_class.__annotations__.items():

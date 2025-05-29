@@ -16,6 +16,7 @@ class MusicControl(Module):
         - This function will play the music in the voice channel.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.
+        - Must add View to control music playback.
         """
         return await MusicPlayer.resolve(ctx, query)
 
@@ -26,6 +27,7 @@ class MusicControl(Module):
         - This function will pause the music in the voice channel.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.
+        - Must add View to control music playback.
         """
         check = MusicPlayer.check_voice_status(ctx)
         if check:
@@ -49,6 +51,7 @@ class MusicControl(Module):
         - This function will resume the music in the voice channel.
         - You MUST embed `current_playing_track` to display. if you have `current_playing_track`.
         - You should give all information to user.
+        - Must add View to control music playback.
         """
         check = MusicPlayer.check_voice_status(ctx)
         if check:
@@ -86,6 +89,7 @@ class MusicControl(Module):
         - This function will skip the music in the voice channel.
         - You MUST embed `current_playing_track` to display. if you have `current_playing_track`.
         - You should give all information to user.
+        - Must add View to control music playback.
         """
         check = MusicPlayer.check_voice_status(ctx)
         if check:
@@ -99,6 +103,7 @@ class MusicControl(Module):
         - This function will play the previous music in the voice channel.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.
+        - Must add View to control music playback.
         """
         check = MusicPlayer.check_voice_status(ctx)
         if check:
@@ -112,6 +117,7 @@ class MusicControl(Module):
         - This function will get the current playing music in the voice channel.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.
+        - Must add View to control music playback.
         """
         check = MusicPlayer.check_voice_status(ctx)
         if check:
@@ -155,6 +161,7 @@ class MusicControl(Module):
         - This function will set the loop for the current music in the voice channel.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.
+        - Must add View to control music playback.
         """
         check = MusicPlayer.check_voice_status(ctx)
         if check:
@@ -168,6 +175,7 @@ class MusicControl(Module):
         - The volume should be between 0 and 100.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.
+        - Must add View to control music playback.
         """
         check = MusicPlayer.check_voice_status(ctx)
         if check:

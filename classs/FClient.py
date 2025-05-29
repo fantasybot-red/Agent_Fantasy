@@ -3,6 +3,7 @@ import os
 import traceback
 from typing import List
 
+import aiohttp
 import discord
 from string import Template
 
@@ -43,6 +44,15 @@ class FClient(discord.Client):
         self.pool = NodePool(self)
         self.pool_loaded = False
 
+    async def get_prompt(self, prompt_id: str):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"https://bin.mudfish.net/api/text/{prompt_id}") as response:
+                if response.status == 200:
+                    jdata_return = await response.json()
+                    return jdata_return["text"]
+                else:
+                    return None
+
     def load_open_ai(self, **options):
         if os.getenv('OPENAI_API_TYPE') == 'AZURE_OPENAI':
             self.openai = AsyncAzureOpenAI(
@@ -72,7 +82,8 @@ class FClient(discord.Client):
             **kwargs
         )
 
-    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: AIContext) -> (AIContext, discord.Message):
+    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: AIContext) -> (AIContext,
+                                                                                                            discord.Message):
         try:
             response = await self.openai.chat.completions.create(
                 model=os.getenv('OPENAI_API_MODAL'),
@@ -200,6 +211,53 @@ class FClient(discord.Client):
                 print(f"Module {module_name} loaded successfully.")
 
     # EVENT HANDLER
+
+    async def on_interaction(self, interaction: discord.Interaction):
+        """Handle Discord interactions (buttons/select menus)."""
+        # Only process component interactions (buttons, select menus)
+        if interaction.type != discord.InteractionType.component:
+            return
+
+        custom_id = interaction.data.get("custom_id", "")
+
+        # Handle prompt-related interactions
+        if custom_id.startswith(("prompt:", "prompt_select:")):
+            await self.handle_prompt_interaction(interaction, custom_id)
+
+    async def handle_prompt_interaction(self, interaction: discord.Interaction, custom_id: str):
+        is_select_menu = custom_id.startswith("prompt_select:")
+        prompt_id = custom_id[14:] if is_select_menu else custom_id[7:]
+
+        try:
+            original_message = await interaction.channel.fetch_message(interaction.message.reference.message_id)
+        except discord.NotFound:
+            await interaction.response.send_message("Original message not found", ephemeral=True)
+            return
+
+        bot_prompt = await self.get_prompt(prompt_id)
+        if not bot_prompt:
+            await interaction.response.send_message("Failed to retrieve prompt data", ephemeral=True)
+            return
+
+        if is_select_menu:
+            selected_values = interaction.data.get("values", [])
+            bot_prompt = Template(bot_prompt).safe_substitute(values=selected_values)
+
+        ctx = AIContext(original_message, self)
+        interaction_type = "menu" if is_select_menu else "button"
+
+        messages = [
+            {"role": "system", "content": self.get_system_prompt(original_message)},
+            {"role": "user", "content": await self.format_user_message(original_message)},
+            {"role": "assistant", "content": interaction.message.content},
+            {"role": "developer", "content": f"User just selected a {interaction_type} with your note following reason: {bot_prompt}"}
+        ]
+
+        message_response = await interaction.response.send_message(f"-# {self.emojis['typing']}")
+        ctx._response_message = message_response.resource
+
+        async with ctx:
+            await self.process_stream_response(messages, ctx)
 
     async def on_message(self, message: discord.Message):
         if message.author.bot:
