@@ -12,7 +12,7 @@ class MusicControl(Module):
     async def play_music(self, ctx: AIContext, query: str):
         """
         Play music from a given query or URL.
-        - Support YouTube, Spotify, SoundCloud platforms.
+        - Support YouTube, Spotify, SoundCloud links.
         - This function will play the music in the voice channel.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.

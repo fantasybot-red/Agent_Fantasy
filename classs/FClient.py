@@ -197,6 +197,7 @@ class FClient(discord.Client):
                 module_name = filename[:-3]
                 module = __import__(f"modules.{module_name}", fromlist=["setup"])
                 await module.setup(self)
+                print(f"Module {module_name} loaded successfully.")
 
     # EVENT HANDLER
 
