@@ -1,7 +1,7 @@
-# Project AI Fantasy
+# Project Agent Fantasy
 
 ---
-This project make to show that AI can be control discord bot and do more than just a chatbot.
+This project make to show that Agent can be control discord bot with properly tool and system prompt.
 
 This a educational project only is not intended for production use.
 ## Features
