@@ -69,6 +69,24 @@ class MusicControl(Module):
             }
 
     @tool()
+    async def pause_resume_music(self, ctx: AIContext):
+        """
+        Toggle pause/resume the current music.
+        - Recommend using this in play/pause button.
+        - This function will toggle pause/resume the music in the voice channel.
+        - You MUST embed `current_playing_track` to display.
+        - You should give all information to user.
+        - Must add View to control music playback.
+        """
+        check = MusicPlayer.check_voice_status(ctx)
+        if check:
+            return check
+        if ctx.voice_client.paused:
+            return await self.resume_music.call(ctx)
+        else:
+            return await self.pause_music.call(ctx)
+
+    @tool()
     async def stop_music(self, ctx: AIContext):
         """
         Stop the current music and disconnect the bot.
