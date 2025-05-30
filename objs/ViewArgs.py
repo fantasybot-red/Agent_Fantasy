@@ -52,6 +52,7 @@ class ViewArgs(TypedDict):
     - For Command like actions, use Buttons.
     - The Button order follows left to right, top to bottom.
     - Selects are always at the bottom below the buttons.
+    - You shouldn't use buttons for case with many choices use Selects instead.
     """
     selects: List[SelectArgs]
     buttons: List[ButtonArgs]
