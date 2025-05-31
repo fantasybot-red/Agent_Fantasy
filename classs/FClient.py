@@ -90,7 +90,8 @@ class FClient(discord.Client):
                 messages=messages,
                 stream=True,
                 tools=self.functions_json_schema,
-                tool_choice="auto"
+                tool_choice="auto",
+                parallel_tool_calls=True
             )
         except BadRequestError as e:
             messages = [messages[0]]
