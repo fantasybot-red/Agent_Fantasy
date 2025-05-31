@@ -25,8 +25,6 @@ class ModalSupport(Module):
             custom_id = None
             if button.get("prompt"):
                 custom_id = "prompt:" + await self.save_prompt(button["prompt"])
-            if button.get("call_tool"):
-                custom_id = "tool:" + button["call_tool"]
             button = discord.ui.Button(
                 label=button["label"],
                 style=discord.ButtonStyle[button["style"]],

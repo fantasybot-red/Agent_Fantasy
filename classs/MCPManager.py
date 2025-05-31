@@ -67,7 +67,7 @@ class MCPManager:
                     f"Duplicate MCP connection name: {name}. Please check your environment variables."
                 )
 
-    async def get_tools(self) -> list[MCPFunction]:
+    async def get_tools(self) -> Dict[str, MCPFunction]:
         functions = {}
         for name, url in self.mcp_host.items():
             stream_client = sse_client(
