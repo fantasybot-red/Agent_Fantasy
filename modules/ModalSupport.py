@@ -38,7 +38,7 @@ class ModalSupport(Module):
             options = [
                 discord.SelectOption(
                     label=option["label"],
-                    value=option["value"],
+                    value="sl:"+ await self.save_prompt(option["value"]),
                     description=option.get("description"),
                 ) for option in select["options"]
             ]

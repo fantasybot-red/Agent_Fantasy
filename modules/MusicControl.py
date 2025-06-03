@@ -7,18 +7,30 @@ from classs.AIContext import AIContext
 class MusicControl(Module):
 
     @tool(
-        query="Search query for music or music URL",
+        query="Query to search for music"
     )
-    async def play_music(self, ctx: AIContext, query: str):
+    async def search_music(self, ctx: AIContext, query: str):
         """
-        Play music from a given query or URL.
+        Search for music using a query.
+        - This function will search for music using the query.
+        - This will return search results.
+        - Must use View to ask user to select a track.
+        """
+        return await MusicPlayer.search(ctx, query)
+
+    @tool(
+        url="YouTube, Spotify, SoundCloud URL url"
+    )
+    async def play_music(self, ctx: AIContext, url: str):
+        """
+        Play music from a given URL.
         - Support YouTube, Spotify, SoundCloud links.
         - This function will play the music in the voice channel.
         - You MUST embed `current_playing_track` to display.
         - You should give all information to user.
         - Must add View to control music playback.
         """
-        return await MusicPlayer.resolve(ctx, query)
+        return await MusicPlayer.resolve(ctx, url)
 
     @tool()
     async def pause_music(self, ctx: AIContext):

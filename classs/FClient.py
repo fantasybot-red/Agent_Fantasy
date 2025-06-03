@@ -82,8 +82,7 @@ class FClient(discord.Client):
             **kwargs
         )
 
-    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: AIContext) -> (AIContext,
-                                                                                                            discord.Message):
+    async def process_stream_response(self, messages: List[ChatCompletionMessageParam], ctx: AIContext) -> (AIContext,                                                                                                  discord.Message):
         try:
             response = await self.openai.chat.completions.create(
                 model=os.getenv('OPENAI_API_MODAL'),
@@ -240,7 +239,8 @@ class FClient(discord.Client):
             return
 
         if is_select_menu:
-            selected_values = interaction.data.get("values", [])
+            selected_values_raw = interaction.data.get("values", [])
+            selected_values = [await self.get_prompt(value[3:]) for value in selected_values_raw if value.startswith("sl:")]
             bot_prompt = Template(bot_prompt).safe_substitute(values=selected_values)
 
         ctx = AIContext(original_message, self)

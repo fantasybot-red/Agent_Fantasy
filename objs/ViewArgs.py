@@ -24,6 +24,12 @@ class ButtonArgs(TypedDict):
     link: Optional[str]
 
 class OptionArgs(TypedDict):
+    """
+    Represents an option in a select menu.
+    - label is limited to 100 characters.
+    - description is limited to 100 characters.
+    - value is unlimited in length, which can be used to store any data and add to ${values}.
+    """
     label: str
     description: Optional[str]
     value: str

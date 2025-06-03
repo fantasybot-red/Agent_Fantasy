@@ -3,7 +3,8 @@ from typing import Literal
 from discord.abc import Connectable
 from mafic import Player, Track, SearchType, Playlist
 
-from classs import FClient, AIContext
+from classs import FClient
+from classs.AIContext import AIContext
 
 class MusicPlayer(Player[FClient]):
     current_track: Track | None
@@ -172,8 +173,42 @@ class MusicPlayer(Player[FClient]):
         return None
 
     @classmethod
-    async def resolve(cls, ctx: AIContext, query: str) -> Track:
-        if not ctx.author.voice:
+    async def search(cls, ctx: AIContext, query: str):
+        node = ctx.client.pool.get_random_node()
+        try:
+            tracks = node.fetch_tracks(query, SearchType.YOUTUBE_MUSIC)
+        except Exception as e:
+            return {
+                "success": False,
+                "reason": "error while fetching track",
+                "error": str(e)
+            }
+        if not tracks:
+            return {
+                "success": False,
+                "reason": "no search not found"
+            }
+        list_tracks = [{
+            "title": track.title,
+            "url": track.uri,
+            "thumbnail": track.artwork_url,
+            "duration": track.length
+        } for track in tracks]
+        return {
+            "success": True,
+            "reason": "search results found",
+            "tracks": list_tracks
+        }
+
+
+    @classmethod
+    async def resolve(cls, ctx: AIContext, query: str):
+        if not query.strip().startswith(("http://", "https://")):
+            return {
+                "success": False,
+                "reason": "must be a valid URL"
+            }
+        elif not ctx.author.voice:
             return {
                 "success": False,
                 "reason": "user are not in a voice channel"
@@ -188,7 +223,7 @@ class MusicPlayer(Player[FClient]):
             ctx.voice_client = await ctx.author.voice.channel.connect(cls=cls)
 
         try:
-            track = await ctx.voice_client.fetch_tracks(query, SearchType.YOUTUBE_MUSIC)
+            track = await ctx.voice_client.fetch_tracks(query)
         except Exception as e:
             if ctx.voice_client.current_track is None:
                 await ctx.voice_client.disconnect()
