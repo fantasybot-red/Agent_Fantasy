@@ -4,7 +4,7 @@ class ButtonArgs(TypedDict):
     """
     Represents a button in a Discord view.
     - Button Must Link or Prompt or Call Tool.
-    - Prompt is instructions for what to do when an option is selected.
+    - Prompt is instructions for what to do when an option is clicked.
     - Link is the URL to open when button is clicked.
     - If Link is provided, style must be "link".
     - Emoji is show next to the button label.
@@ -28,7 +28,8 @@ class OptionArgs(TypedDict):
     Represents an option in a select menu.
     - label is limited to 100 characters.
     - description is limited to 100 characters.
-    - value is unlimited in length, which can be used to store any data and add to ${values}.
+    - value is data for what to do when an option is selected.
+    - you will not see the old content so set it with what data need for next step.
     """
     label: str
     description: Optional[str]
