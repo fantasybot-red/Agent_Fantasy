@@ -3,8 +3,7 @@ from typing import Literal
 from discord.abc import Connectable
 from mafic import Player, Track, SearchType, Playlist
 
-from classs import FClient
-from classs.AIContext import AIContext
+from classs import FClient, AIContext
 
 class MusicPlayer(Player[FClient]):
     current_track: Track | None
