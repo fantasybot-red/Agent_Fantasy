@@ -175,14 +175,13 @@ class MusicPlayer(Player[FClient]):
     async def search(cls, ctx: AIContext, query: str):
         node = ctx.client.pool.get_node(guild_id=ctx.message.guild.id, endpoint=None)
         try:
-            tracks = await node.fetch_tracks(query, search_type=SearchType.YOUTUBE_MUSIC)
+            tracks = await node.fetch_tracks(query, search_type=SearchType.YOUTUBE_MUSIC.value)
         except Exception as e:
             return {
                 "success": False,
                 "reason": "error while fetching track",
                 "error": str(e)
             }
-        print(tracks)
         if not tracks:
             return {
                 "success": False,
