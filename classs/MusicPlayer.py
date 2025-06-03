@@ -182,6 +182,7 @@ class MusicPlayer(Player[FClient]):
                 "reason": "error while fetching track",
                 "error": str(e)
             }
+        print(tracks)
         if not tracks:
             return {
                 "success": False,
