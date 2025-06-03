@@ -2,7 +2,7 @@ import json
 import os
 import traceback
 from typing import List
-
+import base64
 import aiohttp
 import discord
 from string import Template
@@ -49,7 +49,7 @@ class FClient(discord.Client):
             async with session.get(f"https://bin.mudfish.net/api/text/{prompt_id}") as response:
                 if response.status == 200:
                     jdata_return = await response.json()
-                    return jdata_return["text"]
+                    return base64.b64decode(jdata_return["text"]).decode()
                 else:
                     return None
 
@@ -237,26 +237,30 @@ class FClient(discord.Client):
         if not bot_prompt:
             await interaction.response.send_message("Failed to retrieve prompt data", ephemeral=True)
             return
-
-        if is_select_menu:
-            selected_values_raw = interaction.data.get("values", [])
-            selected_values = [await self.get_prompt(value[3:]) for value in selected_values_raw if value.startswith("sl:")]
-            bot_prompt = Template(bot_prompt).safe_substitute(values=selected_values)
-
+        
         ctx = AIContext(original_message, self)
-        interaction_type = "menu" if is_select_menu else "button"
-
-        messages = [
-            {"role": "system", "content": self.get_system_prompt(original_message)},
-            {"role": "user", "content": await self.format_user_message(original_message)},
-            {"role": "assistant", "content": interaction.message.content},
-            {"role": "developer", "content": f"User just selected a {interaction_type} with your note following reason: {bot_prompt}"}
-        ]
-
+        
         message_response = await interaction.response.send_message(f"-# {self.emojis['typing']}")
         ctx._response_message = message_response.resource
 
         async with ctx:
+        
+            if is_select_menu:
+                selected_values_raw = interaction.data.get("values", [])
+                selected_values = [await self.get_prompt(value[3:]) for value in selected_values_raw if value.startswith("sl:")]
+                bot_prompt = Template(bot_prompt).safe_substitute(values=selected_values)
+
+        
+            interaction_type = "menu" if is_select_menu else "button"
+
+            messages = [
+                {"role": "system", "content": self.get_system_prompt(original_message)},
+                {"role": "user", "content": await self.format_user_message(original_message)},
+                {"role": "assistant", "content": interaction.message.content},
+                {"role": "developer", "content": f"User just selected a {interaction_type} with your note following reason: {bot_prompt}"}
+            ]
+
+        
             await self.process_stream_response(messages, ctx)
 
     async def on_message(self, message: discord.Message):
