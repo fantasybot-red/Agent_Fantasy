@@ -175,7 +175,7 @@ class MusicPlayer(Player[FClient]):
     async def search(cls, ctx: AIContext, query: str):
         node = ctx.client.pool.get_random_node()
         try:
-            tracks = node.fetch_tracks(query, search_type=SearchType.YOUTUBE_MUSIC)
+            tracks = await node.fetch_tracks(query, search_type=SearchType.YOUTUBE_MUSIC)
         except Exception as e:
             return {
                 "success": False,
