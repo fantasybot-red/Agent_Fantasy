@@ -1,5 +1,6 @@
 import aiohttp
 import discord.ui
+import base64
 
 from classs import Module, tool
 from classs.AIContext import AIContext
@@ -10,7 +11,7 @@ class ModalSupport(Module):
 
     async def save_prompt(self, prompt: str):
         json_data = {
-            "text": prompt,
+            "text": base64.b64encode(prompt.encode()).decode(),
             "ttl": "0"
         }
 
