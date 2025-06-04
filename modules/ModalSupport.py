@@ -21,7 +21,7 @@ class ModalSupport(Module):
                 return jdata_return["tid"]
 
     async def tranform_dict_to_view(self, view_dict: ViewArgs) -> discord.ui.View:
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=1)
         for button in view_dict["buttons"]:
             custom_id = None
             if button.get("prompt"):

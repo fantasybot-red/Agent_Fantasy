@@ -233,18 +233,21 @@ class FClient(discord.Client):
             await interaction.response.send_message("Original message not found", ephemeral=True)
             return
 
+        # reset user choices
+        if is_select_menu:
+            view = discord.ui.View.from_message(original_message, timeout=1)
+            await interaction.response.edit_message(view=view)
+
         bot_prompt = await self.get_prompt(prompt_id)
         if not bot_prompt:
-            await interaction.response.send_message("Failed to retrieve prompt data", ephemeral=True)
+            await interaction.message.reply("Failed to retrieve prompt data", ephemeral=True)
             return
         
         ctx = AIContext(original_message, self)
         
-        message_response = await interaction.response.send_message(f"-# {self.emojis['typing']}")
-        ctx._response_message = message_response.resource
+        ctx._response_message = await interaction.message.reply(f"-# {self.emojis['typing']}")
 
         async with ctx:
-        
             if is_select_menu:
                 selected_values_raw = interaction.data.get("values", [])
                 selected_values = [await self.get_prompt(value[3:]) for value in selected_values_raw if value.startswith("sl:")]
