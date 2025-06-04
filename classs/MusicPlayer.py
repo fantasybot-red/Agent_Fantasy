@@ -95,9 +95,7 @@ class MusicPlayer(Player[FClient]):
             await self.play(self.current_track)
 
         elif self.loop_mode == "queue":
-            if not self.queue:
-                self.queue, self.history = self.history, []
-            self.history.append(self.current_track)
+            self.queue.append(self.current_track)
             self.current_track = self.queue.pop(0)
             await self.stop()
             await self.play(self.current_track)
