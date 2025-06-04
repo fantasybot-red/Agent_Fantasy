@@ -237,6 +237,8 @@ class FClient(discord.Client):
         if is_select_menu:
             view = discord.ui.View.from_message(interaction.message, timeout=1)
             await interaction.response.edit_message(view=view)
+        else:
+            await interaction.response.defer()
 
         bot_prompt = await self.get_prompt(prompt_id)
         if not bot_prompt:
@@ -255,15 +257,24 @@ class FClient(discord.Client):
 
         
             interaction_type = "menu" if is_select_menu else "button"
+            user_info = {
+                "User ID": interaction.user.id,
+                "User Name": interaction.user.name
+            }
+            if isinstance(interaction.user, discord.Member):
+                if interaction.user.nick:
+                    user_info["User Nickname"] = interaction.user.nick
 
             messages = [
                 {"role": "system", "content": self.get_system_prompt(original_message)},
                 {"role": "user", "content": await self.format_user_message(original_message)},
                 {"role": "assistant", "content": interaction.message.content},
-                {"role": "developer", "content": f"User just selected a {interaction_type} with your note following reason: {bot_prompt}"}
+                {"role": "developer", "content": [
+                    {"type": "text", "text": f"User just selected a {interaction_type} with your note following reason: {bot_prompt}"},
+                    {"type": "text", "text": f"User info: {json.dumps(user_info)}"}
+                ]}
             ]
 
-        
             await self.process_stream_response(messages, ctx)
 
     async def on_message(self, message: discord.Message):
