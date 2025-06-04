@@ -235,7 +235,7 @@ class FClient(discord.Client):
 
         # reset user choices
         if is_select_menu:
-            view = discord.ui.View.from_message(original_message, timeout=1)
+            view = discord.ui.View.from_message(interaction.message, timeout=1)
             await interaction.response.edit_message(view=view)
 
         bot_prompt = await self.get_prompt(prompt_id)
