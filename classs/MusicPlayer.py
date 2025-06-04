@@ -43,23 +43,16 @@ class MusicPlayer(Player[FClient]):
                 "reason": "added track to queue",
                 "track_name": track.title,
                 "track_url": track.uri,
-                "thumbnail": track.artwork_url,
-                "player_info": self.get_player_status_short()
+                "thumbnail": track.artwork_url
             }
         else:
             self.current_track = track
             await self.stop()
             await self.play(track)
-            return {
-                "success": True,
-                "reason": "playing track",
-                "current_playing_track": {
-                    "title": track.title,
-                    "url": track.uri,
-                    "thumbnail": track.artwork_url
-                },
-                "player_info": self.get_player_status_short()
-            }
+            return self.get_status(
+                success=True,
+                reason="playing track",
+            )
 
     async def play_playlist(self, playlist: Playlist):
         if self.current_track:
@@ -68,26 +61,17 @@ class MusicPlayer(Player[FClient]):
                 "success": True,
                 "reason": "added playlist to queue",
                 "playlist_track_length": len(playlist.tracks),
-                "playlist_name": playlist.name,
-                "player_info": self.get_player_status_short()
+                "playlist_name": playlist.name
             }
         else:
             self.current_track = playlist.tracks[0]
             await self.stop()
             await self.play(self.current_track)
             self.queue.extend(playlist.tracks[1:])
-            return {
-                "success": True,
-                "reason": "playing playlist",
-                "playlist_track_length": len(playlist.tracks),
-                "playlist_name": playlist.name,
-                "current_playing_track": {
-                    "title": self.current_track.title,
-                    "url": self.current_track.uri,
-                    "thumbnail": self.current_track.artwork_url
-                },
-                "player_info": self.get_player_status_short()
-            }
+            return self.get_status(
+                success=True,
+                reason="playing playlist",
+            )
 
     async def skip(self):
         if self.loop_mode == "track":
@@ -110,16 +94,10 @@ class MusicPlayer(Player[FClient]):
             await self.disconnect()
             return {"success": False, "reason": "no track to skip bot will disconnect"}
 
-        return {
-            "success": True,
-            "reason": "skipped track",
-            "current_playing_track": {
-                "title": self.current_track.title,
-                "url": self.current_track.uri,
-                "thumbnail": self.current_track.artwork_url
-            },
-            "player_info": self.get_player_status_short()
-        }
+        return self.get_status(
+            success=True,
+            reason="skipped track",
+        )
 
     async def previous(self):
         if self.loop_mode == "track":
@@ -130,19 +108,13 @@ class MusicPlayer(Player[FClient]):
 
         if self.history or (self.loop_mode == "queue" and self.queue):
             self.queue.insert(0, self.current_track)
-            self.current_track = self.history.pop() if self.history else self.queue.pop()
+            self.current_track = self.queue.pop() if self.loop_mode == "queue" else self.history.pop()
             await self.stop()
             await self.play(self.current_track)
-            return {
-                "success": True,
-                "reason": "playing previous track",
-                "current_playing_track": {
-                    "title": self.current_track.title,
-                    "url": self.current_track.uri,
-                    "thumbnail": self.current_track.artwork_url
-                },
-                "player_info": self.get_player_status_short()
-            }
+            return self.get_status(
+                success=True,
+                reason="playing previous track",
+            )
 
         return {
             "success": False,
@@ -187,9 +159,10 @@ class MusicPlayer(Player[FClient]):
             }
         list_tracks = [{
             "title": track.title,
+            "artist": track.author,
             "url": track.uri,
             "thumbnail": track.artwork_url,
-            "duration": track.length
+            "duration": cls._format_ms(track.length)
         } for track in tracks]
         return {
             "success": True,
@@ -262,6 +235,7 @@ class MusicPlayer(Player[FClient]):
             "reason": reason,
             "current_playing_track": {
                 "title": self.current_track.title,
+                "artist": self.current_track.author,
                 "url": self.current_track.uri,
                 "thumbnail": self.current_track.artwork_url
             },
@@ -282,7 +256,8 @@ class MusicPlayer(Player[FClient]):
             "loop_mode": self.loop_mode,
         }
 
-    def _format_ms(self, ms: int) -> str:
+    @classmethod
+    def _format_ms(cls, ms: int) -> str:
         """
         Format ms to mm:ss
         """
