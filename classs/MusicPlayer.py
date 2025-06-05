@@ -46,9 +46,9 @@ class MusicPlayer(Player[FClient]):
                 "thumbnail": track.artwork_url
             }
         else:
-            self.current_track = track
             await self.stop()
             await self.play(track)
+            self.current_track = track
             return self.get_status(
                 success=True,
                 reason="playing track",
@@ -64,9 +64,10 @@ class MusicPlayer(Player[FClient]):
                 "playlist_name": playlist.name
             }
         else:
-            self.current_track = playlist.tracks[0]
+            cache_nowplaying = playlist.tracks[0]
             await self.stop()
             await self.play(self.current_track)
+            self.current_track = cache_nowplaying
             self.queue.extend(playlist.tracks[1:])
             return self.get_status(
                 success=True,
