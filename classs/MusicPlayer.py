@@ -3,9 +3,10 @@ from typing import Literal
 from discord.abc import Connectable
 from mafic import Player, Track, SearchType, Playlist
 
-from classs import FClient, AIContext
-
+from classs import FClient
+from classs.AIContext import AIContext
 class MusicPlayer(Player[FClient]):
+
     current_track: Track | None
     queue: list[Track]
     history: list[Track]
@@ -92,7 +93,7 @@ class MusicPlayer(Player[FClient]):
             await self.play(self.current_track)
 
         else:
-            await self.disconnect()
+            await self.disconnect(force=True)
             return {"success": False, "reason": "no track to skip bot will disconnect"}
 
         return self.get_status(
@@ -197,7 +198,7 @@ class MusicPlayer(Player[FClient]):
             track = await ctx.voice_client.fetch_tracks(query)
         except Exception as e:
             if ctx.voice_client.current_track is None:
-                await ctx.voice_client.disconnect()
+                await ctx.voice_client.disconnect(force=True)
             return {
                 "success": False,
                 "reason": "error while fetching track",
@@ -205,7 +206,8 @@ class MusicPlayer(Player[FClient]):
             }
 
         if not track:
-            await ctx.voice_client.disconnect()
+            if ctx.voice_client.current_track is None:
+                await ctx.voice_client.disconnect(force=True)
             return {
                 "success": False,
                 "reason": "no query found or url is invalid"
