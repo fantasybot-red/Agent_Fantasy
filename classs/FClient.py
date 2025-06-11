@@ -31,7 +31,7 @@ class FClient(discord.Client):
         self.load_open_ai(**options)
         self.load_huggingface()
         self.mcp_manager = MCPManager()
-        with open("resources/system_prompt.md", "r") as f:
+        with open("resources/system_prompt.md", "r", encoding="utf8") as f:
             self.system_prompt = Template(
                 f.read()
             )
