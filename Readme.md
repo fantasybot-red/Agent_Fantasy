@@ -41,6 +41,10 @@ docker run -d --name ai-fantasy ai-fantasy
 
 \* Note: If use docker please make sure to set the environment variable in the docker run command or in docker compose file.
 
+## Acknowledgments
+
+Special thanks to [Dương Lê Giang](https://www.facebook.com/legiang.duong.0101) for providing invaluable guidance on RAG (Retrieval-Augmented Generation) concepts that formed the foundation of this implementation.
+
 ## Project Structure
 - `modules` - This folder contains all tool built-in for bot functions.
 - `objs` - This folder contains all typing objects for tool args ( tool decorator auto turn function args to json schema).

@@ -7,6 +7,8 @@ import aiohttp
 import discord
 from string import Template
 
+from google_custom_search import CustomSearch, AiohttpAdapter
+
 from classs.AIContext import AIContext
 from mafic import NodePool, TrackEndEvent, EndReason, TrackExceptionEvent
 from openai import AsyncAzureOpenAI, BadRequestError, AsyncOpenAI
@@ -25,6 +27,7 @@ class FClient(discord.Client):
     emojis: dict = {}
     functions = {}
     functions_json_schema = []
+    google_search_client: CustomSearch = None
 
     def __init__(self, **options):
         intents = discord.Intents.all()
@@ -63,6 +66,14 @@ class FClient(discord.Client):
             self.openai = AsyncOpenAI(
                 **options
             )
+
+    def load_google_search(self):
+        if os.getenv('GOOGLE_API_KEY') and os.getenv('GOOGLE_SEARCH_ENGINE_ID'):
+            self.google_search_client = CustomSearch(
+                AiohttpAdapter(apikey=os.getenv('GOOGLE_API_KEY'), engine_id=os.getenv('GOOGLE_SEARCH_ENGINE_ID'))
+            )
+        else:
+            self.google_search_client = None
 
     def load_huggingface(self):
         if os.getenv('HUGGINGFACE_TOKEN'):
@@ -189,6 +200,7 @@ class FClient(discord.Client):
         await self.load_modules()
         self.functions.update(await self.mcp_manager.get_tools())
         self.functions_json_schema.extend([f.to_dict() for f in self.functions.values()])
+        self.load_google_search()  # Load Google Search client need event loop
 
     async def load_lavalink_nodes(self):
         if self.pool_loaded:
