@@ -138,14 +138,9 @@ class DeepSearch(Module):
             async for result in self.client.google_search_client.asearch(search_query, limit=5):
                 search_results.append(result)
 
-            list_results = [{
-                "title": result.title,
-                "url": result.url,
-                "snippet": result.snippet
-            } for result in search_results]
 
             evaluation_message = self._create_evaluation_message(
-                target_context, current_target, search_query, results, list_results
+                target_context, current_target, search_query, results, search_results
             )
 
             try:
@@ -196,13 +191,20 @@ class DeepSearch(Module):
                 "reason": f"Error during summary generation: {str(e)}"
             }
 
+    def _refomart_item_to_dict(self, item: Item) -> Dict[str, Any]:
+        return {
+            "title": item.title,
+            "url": item.url,
+            "snippet": item.snippet
+        }
+
     def _create_evaluation_message(
             self,
             original_target: str,
             current_target: str,
             search_query: str,
-            stored_results: List[Dict],
-            new_results: List[Dict]
+            stored_results: List[Item],
+            new_results: List[Item]
     ) -> List[Dict]:
         return [
             {
@@ -222,12 +224,12 @@ class DeepSearch(Module):
                     "rating": 0 -> 100 // Rating quality of the selected context and filtered data
                 }}
                 Context Selected:
-                {json.dumps(stored_results)}
+                {json.dumps([self._refomart_item_to_dict(i) for i in stored_results])}
                 """
             },
             {
                 "role": "user",
-                "content": json.dumps(new_results)
+                "content": json.dumps([self._refomart_item_to_dict(i) for i in new_results])
             }
         ]
 
