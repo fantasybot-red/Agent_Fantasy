@@ -123,8 +123,15 @@ class DeepSearch(Module):
         max_iterations = 20
         iterations = 0
 
-        while iterations < max_iterations:
+        while True:
             iterations += 1
+            if iterations > max_iterations and not results:
+                return {
+                    "success": False,
+                    "reason": "Deep search exceeded maximum iterations."
+                }
+            elif results and iterations > max_iterations:
+                break
 
             search_results = []
 
@@ -148,7 +155,7 @@ class DeepSearch(Module):
                 )
 
                 evaluation_data = json.loads(evaluation_response.choices[0].message.content)
-
+                print(f"Evaluation Data: {evaluation_data}")
                 if evaluation_data["rating"] >= 90 and len(results) >= 10:
                     break
 
