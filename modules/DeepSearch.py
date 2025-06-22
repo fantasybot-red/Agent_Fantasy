@@ -163,7 +163,7 @@ class DeepSearch(Module):
 
                 evaluation_data = json.loads(evaluation_response.choices[0].message.content)
 
-                if evaluation_data["rating"] >= 90 or len(results) >= 30:
+                if evaluation_data["rating"] >= 90 and len(results) >= 10:
                     break
 
                 search_query = evaluation_data["query"]
