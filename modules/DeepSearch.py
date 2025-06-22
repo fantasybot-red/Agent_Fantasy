@@ -170,8 +170,8 @@ class DeepSearch(Module):
                 current_target = evaluation_data.get("target_context", current_target)
 
                 for index in evaluation_data["store"]:
-                    if index < len(list_results):
-                        results.append(list_results[index])
+                    if index < len(search_results):
+                        results.append(search_results[index])
 
             except Exception as e:
                 print(f"Evaluation error: {str(e)}")
