@@ -127,23 +127,9 @@ class DeepSearch(Module):
             iterations += 1
 
             search_results = []
-            try:
-                async for result in self.client.google_search_client.asearch(search_query, limit=5):
-                    search_results.append(result)
-            except Exception as e:
-                print(f"Search error: {str(e)}")
-                return {
-                    "success": False,
-                    "reason": f"Search failed: {str(e)}",
-                    "results": results
-                }
 
-            if not search_results:
-                return {
-                    "success": False,
-                    "reason": "No search results found.",
-                    "results": results
-                }
+            async for result in self.client.google_search_client.asearch(search_query, limit=5):
+                search_results.append(result)
 
             list_results = [{
                 "title": result.title,
@@ -174,9 +160,10 @@ class DeepSearch(Module):
                         results.append(search_results[index])
 
             except Exception as e:
-                print(f"Evaluation error: {str(e)}")
-                traceback.print_exc()
-                break
+                return {
+                    "success": False,
+                    "reason": f"Error during evaluation: {str(e)}"
+                }
 
         try:
             relevant_context = await self.process_search_results(current_target, results)
