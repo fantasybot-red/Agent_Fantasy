@@ -99,6 +99,8 @@ class DeepSearch(Module):
         - Call `set_status` before search
         - Use English queries only
         - Make queries concise yet specific for optimal results
+        - Taget context should be clear and MUST be detailed as possible
+        - If you don't have enough information, ask user for more details
         - Define detailed target context for content filtering
         - Request clarification for ambiguous prompts
         - No NSFW content searches allowed
@@ -106,7 +108,8 @@ class DeepSearch(Module):
         OUTPUT RULES:
         - Use only information from search results - no fabrication
         - Return error message if search fails or format is unexpected
-        - Preserve original context and language when possible
+        - Preserve original context as much as possible
+        - Do Not translate technical terms or specific names
         - Translate/reformat only when necessary for readability
         """
 
@@ -168,7 +171,7 @@ class DeepSearch(Module):
                 }
 
         try:
-            relevant_context = await self.process_search_results(current_target, results)
+            relevant_context = await self.process_search_results(target_context, results)
 
             summary_message = self._create_summary_message(
                 target_context, current_target, relevant_context
