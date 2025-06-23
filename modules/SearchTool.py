@@ -2,7 +2,6 @@ import asyncio
 import io
 import json
 import os
-import traceback
 from typing import Dict, List, Optional, Any
 
 import aiohttp
@@ -15,7 +14,7 @@ from classs.AIContext import AIContext
 from google_custom_search import Item
 
 
-class DeepSearch(Module):
+class SearchTool(Module):
 
     def __init__(self, client):
         super().__init__(client)
@@ -87,113 +86,6 @@ class DeepSearch(Module):
 
         return np.dot(v1, v2) / (n1 * n2)
 
-    @tool(
-        prompt="Search query for deep search",
-        target_context="Content to search for in the results"
-    )
-    async def deep_search(self, ctx: AIContext, search_query: str, target_context: str) -> Dict[str, Any]:
-        """
-        Execute targeted web search based on user prompt:
-
-        REQUIREMENTS:
-        - Call `set_status` before search
-        - Use English queries only
-        - Make queries concise yet specific for optimal results
-        - Taget context should be clear and MUST be detailed as possible
-        - If you don't have enough information, ask user for more details
-        - Define detailed target context for content filtering
-        - Request clarification for ambiguous prompts
-        - No NSFW content searches allowed
-
-        OUTPUT RULES:
-        - Use only information from search results - no fabrication
-        - Return error message if search fails or format is unexpected
-        - Preserve original context as much as possible
-        - Do Not translate technical terms or specific names
-        - Translate/reformat only when necessary for readability
-        """
-
-        if (self.client.google_search_client is None or
-                self.client.huggingface is None or
-                not self.feature_extraction_model):
-            return {
-                "success": False,
-                "reason": "Deep search is not enabled. Missing required dependencies."
-            }
-
-        results = []
-        current_target = target_context
-        max_iterations = 20
-        iterations = 0
-
-        while True:
-            iterations += 1
-            if iterations > max_iterations and not results:
-                return {
-                    "success": False,
-                    "reason": "Deep search exceeded maximum iterations."
-                }
-            elif results and iterations > max_iterations:
-                break
-
-            search_results = []
-
-            async for result in self.client.google_search_client.asearch(search_query, limit=5):
-                search_results.append(result)
-
-
-            evaluation_message = self._create_evaluation_message(
-                target_context, current_target, search_query, results, search_results
-            )
-
-            try:
-                evaluation_response = await self.client.openai.chat.completions.create(
-                    model=self.openai_model,
-                    messages=evaluation_message
-                )
-
-                evaluation_data = json.loads(evaluation_response.choices[0].message.content)
-                print(f"Evaluation Data: {evaluation_data}")
-                if evaluation_data["rating"] >= 90 and len(results) >= 10:
-                    break
-
-                search_query = evaluation_data["query"]
-                current_target = evaluation_data.get("target_context", current_target)
-
-                for index in evaluation_data["store"]:
-                    if index < len(search_results):
-                        results.append(search_results[index])
-
-            except Exception as e:
-                return {
-                    "success": False,
-                    "reason": f"Error during evaluation: {str(e)}"
-                }
-
-        try:
-            relevant_context = await self.process_search_results(target_context, results)
-
-            summary_message = self._create_summary_message(
-                target_context, current_target, relevant_context
-            )
-
-            summary_response = await self.client.openai.chat.completions.create(
-                model=self.openai_model,
-                messages=summary_message
-            )
-
-            return {
-                "success": True,
-                "reason": "Deep search completed successfully.",
-                "results": summary_response.choices[0].message.content
-            }
-
-        except Exception as e:
-            return {
-                "success": False,
-                "reason": f"Error during summary generation: {str(e)}"
-            }
-
     def _refomart_item_to_dict(self, item: Item) -> Dict[str, Any]:
         return {
             "title": item.title,
@@ -261,7 +153,173 @@ class DeepSearch(Module):
             }
         ]
 
+    @tool(
+        prompt="Search query for deep search",
+        target_context="Content to search for in the results"
+    )
+    async def deep_search(self, ctx: AIContext, search_query: str, target_context: str) -> Dict[str, Any]:
+        """
+        Execute targeted web search based on user prompt:
+
+        REQUIREMENTS:
+        - Call `set_status` before search
+        - Use English queries only
+        - Make queries concise yet specific for optimal results
+        - Taget context should be clear and MUST be detailed as possible
+        - If you don't have enough information, ask user for more details
+        - Define detailed target context for content filtering
+        - Request clarification for ambiguous prompts
+        - No NSFW content searches allowed
+
+        OUTPUT RULES:
+        - Use only information from search results - no fabrication
+        - Return error message if search fails or format is unexpected
+        - Preserve original context as much as possible
+        - Do Not translate technical terms or specific names
+        - Translate/reformat only when necessary for readability
+        """
+
+        if (self.client.google_search_client is None or
+                self.client.huggingface is None or
+                not self.feature_extraction_model):
+            return {
+                "success": False,
+                "reason": "Deep search is not enabled. Missing required dependencies."
+            }
+
+        results = []
+        current_target = target_context
+        max_iterations = 20
+        iterations = 0
+        relevant_context = ""
+        while True:
+            iterations += 1
+            if iterations > max_iterations and not results:
+                return {
+                    "success": False,
+                    "reason": "Deep search exceeded maximum iterations."
+                }
+            elif results and iterations > max_iterations:
+                break
+
+            search_results = []
+
+            async for result in self.client.google_search_client.asearch(search_query, limit=5):
+                search_results.append(result)
+
+
+            evaluation_message = self._create_evaluation_message(
+                target_context, current_target, search_query, results, search_results
+            )
+
+            try:
+                evaluation_response = await self.client.openai.chat.completions.create(
+                    model=self.openai_model,
+                    messages=evaluation_message
+                )
+
+                evaluation_data = json.loads(evaluation_response.choices[0].message.content)
+                print(f"Evaluation Data: {evaluation_data}")
+                if evaluation_data["rating"] >= 90 and len(results) >= 10:
+                    break
+
+                search_query = evaluation_data["query"]
+                current_target = evaluation_data.get("target_context", current_target)
+                temp_selected = []
+                for index in evaluation_data["store"]:
+                    if index < len(search_results):
+                        results.append(search_results[index])
+                        temp_selected.append(search_results[index])
+                if temp_selected:
+                    relevant_context += await self.process_search_results(
+                        current_target, temp_selected
+                    ) + "\n\n---\n\n"
+            except Exception as e:
+                return {
+                    "success": False,
+                    "reason": f"Error during evaluation: {str(e)}"
+                }
+
+        try:
+            summary_message = self._create_summary_message(
+                target_context, current_target, relevant_context
+            )
+
+            summary_response = await self.client.openai.chat.completions.create(
+                model=self.openai_model,
+                messages=summary_message
+            )
+
+            return {
+                "success": True,
+                "reason": "Deep search completed successfully.",
+                "results": summary_response.choices[0].message.content
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "reason": f"Error during summary generation: {str(e)}"
+            }
+
+    @tool
+    async def search(self, ctx: AIContext, query: str) -> Dict[str, Any]:
+        """
+        Perform a simple web search using the provided query.
+        Returns a list of search results.
+        """
+        if self.client.google_search_client is None:
+            return {
+                "success": False,
+                "reason": "Search tool is not enabled. Missing Google Search client."
+            }
+
+        try:
+            results = []
+            async for item in self.client.google_search_client.asearch(query, limit=5):
+                results.append({
+                    "title": item.title,
+                    "url": item.url,
+                    "snippet": item.snippet
+                })
+            return {
+                "success": True,
+                "results": results
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "reason": f"Error during search: {str(e)}"
+            }
+
+    @tool
+    async def fetch(self, ctx: AIContext, url: str) -> Dict[str, Any]:
+        """
+        Fetch the content of a web page by its URL.
+        Returns the content in Markdown format.
+        """
+        item = Item({
+            "kind": "customsearch#result",
+            "title": "Fetched Content",
+            "link": url,
+            "displayLink": url,
+            "htmlTitle": f"<a href='{url}'>{url}</a>",
+            "snippet": "Content fetched from the provided URL."
+        })
+        data = await self.process_body(item)
+        if data:
+            return {
+                "success": True,
+                "reason": "Content fetched successfully.",
+                "content": data
+            }
+        else:
+            return {
+                "success": False,
+                "reason": "Failed to fetch content from the provided URL."
+            }
+
 
 async def setup(client):
     """Register the DeepSearch module with the client."""
-    await client.add_module(DeepSearch(client))
+    await client.add_module(SearchTool(client))
