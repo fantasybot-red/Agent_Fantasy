@@ -157,9 +157,14 @@ class SearchTool(Module):
         prompt="Search query for deep search",
         target_context="Content to search for in the results"
     )
-    async def deep_search(self, ctx: AIContext, search_query: str, target_context: str) -> Dict[str, Any]:
+    async def search(self, ctx: AIContext, search_query: str, target_context: str) -> Dict[str, Any]:
         """
         Execute targeted web search based on user prompt:
+
+        URL DETECTION WARNING:
+        - DO NOT use this method if the user provides a direct URL
+        - If a URL is provided, use the fetch tool instead
+        - This method is only for general web searches without specific URLs
 
         REQUIREMENTS:
         - Call `set_status` before search
@@ -202,10 +207,8 @@ class SearchTool(Module):
             elif results and iterations > max_iterations:
                 break
 
-            search_results = []
-
-            async for result in self.client.google_search_client.asearch(search_query, limit=5):
-                search_results.append(result)
+            # noinspection PyUnresolvedReferences
+            search_results = await self.client.google_search_client.search(search_query)
 
 
             evaluation_message = self._create_evaluation_message(
@@ -262,41 +265,17 @@ class SearchTool(Module):
                 "reason": f"Error during summary generation: {str(e)}"
             }
 
-    @tool
-    async def search(self, ctx: AIContext, query: str) -> Dict[str, Any]:
-        """
-        Perform a simple web search using the provided query.
-        Returns a list of search results.
-        """
-        if self.client.google_search_client is None:
-            return {
-                "success": False,
-                "reason": "Search tool is not enabled. Missing Google Search client."
-            }
-
-        try:
-            results = []
-            async for item in self.client.google_search_client.asearch(query, limit=5):
-                results.append({
-                    "title": item.title,
-                    "url": item.url,
-                    "snippet": item.snippet
-                })
-            return {
-                "success": True,
-                "results": results
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "reason": f"Error during search: {str(e)}"
-            }
-
-    @tool
+    @tool(
+        url="URL to fetch content from"
+    )
     async def fetch(self, ctx: AIContext, url: str) -> Dict[str, Any]:
         """
-        Fetch the content of a web page by its URL.
-        Returns the content in Markdown format.
+        Fetch the content of a specific URL
+
+        Support all content types (text, HTML, JSON, PDF, Docx, etc.)
+
+        Use this to get content from a specific URL provided by the user.
+        Use this instead of `search` if the user provides a direct URL.
         """
         item = Item({
             "kind": "customsearch#result",
@@ -321,5 +300,4 @@ class SearchTool(Module):
 
 
 async def setup(client):
-    """Register the DeepSearch module with the client."""
     await client.add_module(SearchTool(client))
