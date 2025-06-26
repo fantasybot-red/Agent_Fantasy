@@ -3,7 +3,6 @@
 ---
 This project make to show that Agent can be control discord bot with properly tool and system prompt.
 
-This a educational project only is not intended for production use.
 ## Features
 - Unlimit Extension (Using MCP SSE to extend the bot tool)
 - Dynamicly Module
