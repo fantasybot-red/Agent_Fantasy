@@ -38,6 +38,7 @@ class AIContext:
         self.view_update = False
         self.attachments_update = False
         self.embeds_update = False
+        self.message_file = None
 
     async def __aenter__(self):
         await self.start_response()
@@ -64,7 +65,7 @@ class AIContext:
     def add_temp_attachment(self, content: str, content_type: str):
         file_id = os.urandom(16).hex()
         file_ext = mimetypes.guess_extension(content_type) or ""
-        filename = file_id+file_ext
+        filename = file_id + file_ext
         content = base64.b64decode(content)
         file = discord.File(io.BytesIO(content), filename=filename)
         self.cache_attachments.append(file)
@@ -96,8 +97,14 @@ class AIContext:
         if not self._response.strip():
             return
         if time.time() - self._last_edit > 3 and self._response.strip():
-            temp_content = self._response + self.client.emojis["typing"]
+            emoji = self.client.emojis["typing"]
+            temp_content = self._response[:2000 - len(emoji)] + emoji
             kwargs = self._gen_kwargs()
+            if len(self._response) > 2000:
+                kwargs["attachments"] = kwargs.get("attachments", []) + [
+                    discord.File(io.BytesIO(self._response.encode('utf-8')), filename="response.md",
+                                 description="Full response content")
+                ]
             await self._response_message.edit(content=temp_content, **kwargs)
             self._last_edit = time.time()
 
@@ -110,7 +117,15 @@ class AIContext:
         if not self._response.strip():
             return
         kwargs = self._gen_kwargs()
-        await self._response_message.edit(content=self._response, **kwargs)
+        content = self._response
+        if len(self._response) > 2000:
+            kwargs["attachments"] = kwargs.get("attachments", []) + [
+                discord.File(io.BytesIO(self._response.encode('utf-8')), filename="response.md",
+                             description="Full response content")
+            ]
+            kwargs["content"] = self._response[:2000]
+            content = self._response[:2000 - 3] + "..."
+        await self._response_message.edit(content=content, **kwargs)
 
     async def set_status(self, status: str):
         status = self.client.emojis["loading"] + " " + status
