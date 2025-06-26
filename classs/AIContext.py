@@ -123,7 +123,6 @@ class AIContext:
                 discord.File(io.BytesIO(self._response.encode('utf-8')), filename="response.md",
                              description="Full response content")
             ]
-            kwargs["content"] = self._response[:2000]
             content = self._response[:2000 - 3] + "..."
         await self._response_message.edit(content=content, **kwargs)
 
