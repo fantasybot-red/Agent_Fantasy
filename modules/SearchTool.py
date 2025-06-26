@@ -38,13 +38,13 @@ class SearchTool(Module):
             print(f"Error processing {item.url}: {str(e)}")
             return None
 
-    async def process_search_results(self, context: str, search_results: List[Item]) -> str:
+    async def process_search_results(self, context: str, search_results: List[Item]) -> str | None:
 
         documents_raw = await asyncio.gather(*[self.process_body(result) for result in search_results])
         cleaned_documents = [doc for doc in documents_raw if doc is not None]
 
         if not cleaned_documents:
-            return "No valid documents found in search results."
+            return None
 
         try:
             context_features = await self.client.huggingface.feature_extraction(
@@ -234,9 +234,11 @@ class SearchTool(Module):
                         results.append(search_results[index])
                         temp_selected.append(search_results[index])
                 if temp_selected:
-                    relevant_context += await self.process_search_results(
+                    relevant_context_temp = await self.process_search_results(
                         current_target, temp_selected
-                    ) + "\n\n---\n\n"
+                    )
+                    if relevant_context_temp is not None:
+                        relevant_context += relevant_context_temp + "\n\n---\n\n"
             except Exception as e:
                 return {
                     "success": False,
@@ -276,6 +278,7 @@ class SearchTool(Module):
 
         Use this to get content from a specific URL provided by the user.
         Use this instead of `search` if the user provides a direct URL.
+        This is better when user wants to summarize or analyze specific all content from a URL.
         """
         item = Item({
             "kind": "customsearch#result",
@@ -296,6 +299,41 @@ class SearchTool(Module):
             return {
                 "success": False,
                 "reason": "Failed to fetch content from the provided URL."
+            }
+
+    @tool(
+        url="URL to fetch content from",
+        query="Query to search for in the content"
+    )
+    async def fetch_and_search(self, ctx: AIContext, url: str, query: str) -> Dict[str, Any]:
+        """
+        Fetch content from a URL and search for a specific query within that content.
+
+        This is usefully when user what to get particular information from a content.
+        Query should be specific and detailed to get the best results.
+        This tool combines fetching content from a URL and searching for a specific query within that content.
+        It is useful when the user wants to analyze or summarize specific information from a content.
+        Return the relevant context based on the search query.
+        """
+        item = Item({
+            "kind": "customsearch#result",
+            "title": "Fetched Content",
+            "link": url,
+            "displayLink": url,
+            "htmlTitle": f"<a href='{url}'>{url}</a>",
+            "snippet": "Content fetched from the provided URL."
+        })
+        relevant_context = await self.process_search_results(query, [item])
+        if relevant_context:
+            return {
+                "success": True,
+                "reason": "Content fetched and searched successfully.",
+                "content": relevant_context
+            }
+        else:
+            return {
+                "success": False,
+                "reason": "Failed to fetch or search content from the provided URL."
             }
 
 
