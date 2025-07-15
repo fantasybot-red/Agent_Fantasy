@@ -106,7 +106,7 @@ class AIContext:
             self._last_edit = time.time()
 
     async def start_response(self):
-        if self._response_message is not None:
+        if getattr(self, "_response_message") is not None:
             return
         self._response_message = await self.message.reply("-# " + self.client.emojis["typing"])
 
