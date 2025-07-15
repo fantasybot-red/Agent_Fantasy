@@ -18,7 +18,7 @@ class AIContext:
     author: User | Member
     _response: str
     _response_message: Message
-    _last_edit: int
+    _last_edit: float
 
     def __init__(self, message: Message, client: FClient):
         self.message = message
@@ -26,11 +26,8 @@ class AIContext:
         self.client = client
         self.voice_client = message.guild.voice_client
         self.mcp_session = client.mcp_manager.create_session()
-
         self._response = ""
-        self._response_message = None
         self._last_edit = 0
-
         self.attachments = []
         self.cache_attachments = []
         self.embeds = []

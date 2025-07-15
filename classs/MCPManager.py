@@ -3,7 +3,7 @@ import traceback
 from typing import Dict, Any, List
 from mcp import ClientSession, Tool
 from mcp.client.sse import sse_client
-
+from contextlib import AsyncExitStack
 from classs.AIContext import AIContext
 
 
@@ -102,6 +102,7 @@ class MCPSession:
     def __init__(self, manager: MCPManager):
         self.manager = manager
         self.clients = {}
+        self.exit_stack = AsyncExitStack()
 
     async def get_client_session(self, name: str):
         if name in self.clients:
@@ -110,8 +111,8 @@ class MCPSession:
         stream_client = sse_client(
             url=url
         )
-        read, write = await stream_client.__aenter__()
-        session = await ClientSession(read, write).__aenter__()
+        read, write = await self.exit_stack.enter_async_context(stream_client)
+        session = await self.exit_stack.enter_async_context(ClientSession(read, write))
         await session.initialize()
         self.clients[name] = [session, stream_client]
         return session
@@ -129,6 +130,4 @@ class MCPSession:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        for transport, client in self.clients.values():
-            await transport.__aexit__(exc_type, exc_val, exc_tb)
-            await client.__aexit__(exc_type, exc_val, exc_tb)
+        await self.exit_stack.aclose()
