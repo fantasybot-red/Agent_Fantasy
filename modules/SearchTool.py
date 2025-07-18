@@ -175,7 +175,8 @@ class SearchTool(Module):
         - Define detailed target context for content filtering
         - Request clarification for ambiguous prompts
         - No NSFW content searches allowed
-        - Only use when user wants to use deep search for specific content.
+        - ONLY use when user requests deep search.
+        - Recommend use `search` tool for general searches then `fetch` tool for specific URLs.
 
         OUTPUT RULES:
         - Use only information from search results - no fabrication
@@ -346,7 +347,8 @@ class SearchTool(Module):
 
         This is useful when the user wants to search for general information without a specific URL.
         It returns the top search results based on the query.
-        Then it processes the search results to extract relevant information.
+        After searching, it will return the results select the most relevant link then use `fetch` tool to get the content.
+        Recommend using this tool for all general searches.
         """
         if self.client.google_search_client is None:
             return {
