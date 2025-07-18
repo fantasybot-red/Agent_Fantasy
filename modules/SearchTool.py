@@ -157,9 +157,9 @@ class SearchTool(Module):
         prompt="Search query for deep search",
         target_context="Content to search for in the results"
     )
-    async def search(self, ctx: AIContext, search_query: str, target_context: str) -> Dict[str, Any]:
+    async def deep_search(self, ctx: AIContext, search_query: str, target_context: str) -> Dict[str, Any]:
         """
-        Execute targeted web search based on user prompt:
+        Execute a deep search for the given query and target context:
 
         URL DETECTION WARNING:
         - DO NOT use this method if the user provides a direct URL
@@ -168,13 +168,14 @@ class SearchTool(Module):
 
         REQUIREMENTS:
         - Call `set_status` before search
-        - Use English queries only
+        - Recommend English queries only ( user other languages may lead to unexpected results )
         - Make queries concise yet specific for optimal results
         - Taget context should be clear and MUST be detailed as possible
         - If you don't have enough information, ask user for more details
         - Define detailed target context for content filtering
         - Request clarification for ambiguous prompts
         - No NSFW content searches allowed
+        - Only use when user wants to use deep search for specific content.
 
         OUTPUT RULES:
         - Use only information from search results - no fabrication
@@ -305,7 +306,7 @@ class SearchTool(Module):
         url="URL to fetch content from",
         query="Query to search for in the content"
     )
-    async def fetch_and_search(self, ctx: AIContext, url: str, query: str) -> Dict[str, Any]:
+    async def fetch_and_search_document(self, ctx: AIContext, url: str, query: str) -> Dict[str, Any]:
         """
         Fetch content from a URL and search for a specific query within that content.
 
@@ -335,6 +336,36 @@ class SearchTool(Module):
                 "success": False,
                 "reason": "Failed to fetch or search content from the provided URL."
             }
+
+    @tool(
+        query="Query to search for in the content"
+    )
+    async def search(self, ctx: AIContext, query: str) -> Dict[str, Any]:
+        """
+        Search for a specific query using Google Search.
+
+        This is useful when the user wants to search for general information without a specific URL.
+        It returns the top search results based on the query.
+        Then it processes the search results to extract relevant information.
+        """
+        if self.client.google_search_client is None:
+            return {
+                "success": False,
+                "reason": "Search is not enabled. Missing Google Custom Search client."
+            }
+
+        search_results = await self.client.google_search_client.search(query)
+        if not search_results:
+            return {
+                "success": False,
+                "reason": "No results found for the given query."
+            }
+
+        return {
+            "success": True,
+            "reason": "Search completed successfully.",
+            "results": [self._refomart_item_to_dict(item) for item in search_results]
+        }
 
 
 async def setup(client):
