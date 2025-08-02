@@ -7,13 +7,12 @@ from typing import List
 
 import discord
 from discord import Message, Embed, Member, User
-from classs.MusicPlayer import MusicPlayer
 from classs import FClient
 
 
 class AIContext:
     message: Message
-    voice_client: MusicPlayer | None
+    voice_client:  None | discord.VoiceClient
     client: FClient
     author: User | Member
     _response: str

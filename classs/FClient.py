@@ -10,7 +10,6 @@ from string import Template
 from google_custom_search import CustomSearch, AiohttpAdapter
 
 from classs.AIContext import AIContext
-from mafic import NodePool, TrackEndEvent, EndReason, TrackExceptionEvent
 from openai import AsyncAzureOpenAI, BadRequestError, AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
@@ -44,8 +43,6 @@ class FClient(discord.Client):
         allowed_mentions = discord.AllowedMentions.none()
         allowed_mentions.replied_user = True
         super().__init__(intents=intents, allowed_mentions=allowed_mentions)
-        self.pool = NodePool(self)
-        self.pool_loaded = False
 
     async def get_prompt(self, prompt_id: str):
         async with aiohttp.ClientSession() as session:
@@ -202,14 +199,6 @@ class FClient(discord.Client):
         self.functions_json_schema.extend([f.to_dict() for f in self.functions.values()])
         self.load_google_search()  # Load Google Search client need event loop
 
-    async def load_lavalink_nodes(self):
-        if self.pool_loaded:
-            return
-        nodes = json.loads(os.getenv('LAVALINK_NODES', '[]'))
-        for node in nodes:
-            await self.pool.create_node(**node)
-        self.pool_loaded = True
-
     async def add_module(self, module):
         self.functions.update(module.functions)
 
@@ -311,31 +300,8 @@ class FClient(discord.Client):
 
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState,
                                     after: discord.VoiceState):
-        player = member.guild.voice_client
-        if not player or before.channel is None or before.channel == after.channel:
-            return
-
-        if member == self.user:
-            if after.channel and len([m for m in after.channel.members if not m.bot]):
-                return
-
-        elif self.user not in before.channel.members:
-            return
-
-        elif len([m for m in before.channel.members if not m.bot]):
-            return
-
-        await player.disconnect(force=True)
+        pass
+        # TODO: MAKE VOICE STATE HANDLER FOR NEW FEATURES
 
     async def on_ready(self):
-        await self.load_lavalink_nodes()
         print(f'We have logged in as {self.user}')
-
-    # LAVALINK EVENTS
-
-    async def on_track_end(self, event: TrackEndEvent):
-        if event.reason == EndReason.FINISHED:
-            await event.player.skip()
-
-    async def on_track_exception(self, event: TrackExceptionEvent):
-        await event.player.skip()

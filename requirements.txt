@@ -1,7 +1,6 @@
 openai
 python-dotenv
 aiohttp
-mafic
 git+https://github.com/huggingface/huggingface_hub
 Pillow
 mcp
