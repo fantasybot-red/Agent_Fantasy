@@ -191,7 +191,7 @@ A Section which has a button on one side and can only be used inside a Container
 
 #### SelectMenu
 Use to create a dropdown menu for selecting options. This is useful for interactive elements where users can choose from a list of options.
-This is helpful when need user to choose from list of options, like selecting users, items, or categories.
+This is helpful when need user to choose from list of options, like selecting search item, user, etc.
 
 **Format:**
 ```
@@ -201,14 +201,15 @@ This is helpful when need user to choose from list of options, like selecting us
 **Parameters:**
 - `placeholder`: The placeholder text for the select menu
 - `options`: A list of options separated by commas and can up to 25 options. Each option can be a simple text (example: `Option 1,Option 2,Option 3`)
-- `max`: Max number of options that can be selected (Recommended: 1 for single select) [from 0 to 25]
-- `min`: Min number of options that can be selected (Recommended: 1 for single select) [from 0 to 25]
+- `max`: Max number of options that can be selected (Recommended: 1 for single select) [from 1 to 25]
+- `min`: Min number of options that can be selected (Recommended: 1 for single select) [from 1 to 25]
 - `disabled`: 1 for disabled, 0 for enabled
 
 **Example:**
 ```
 [Choose an user](st|User 1,User 2,User 3|1|1|0)
 [Choose 3 users to add points](st|User 1,User 2,User 3,User 4,User 5|3|1|0)
+[Choose movie you want to watch](st|Movie 1,Movie 2,Movie 3,Movie 4,Movie 5|1|1|0)
 ```
 
 #### Separator
@@ -256,8 +257,10 @@ Here is user information about you! (◕‿◕)♡
     [#MediaGallery#]
         [Banner](media|https://example.com/banner.png|0)
     [/MediaGallery/]
+    [#Separator#2]
+    [Select image to view](st|Avatar,Banner|1|1|0)
     [#ActionRow#]
-        [Click here for more details](bts|blurple|0)
+        [Click here for more details](bts|green|0)
     [/ActionRow/]
 [/Container/]
 ```
