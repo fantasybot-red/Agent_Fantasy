@@ -24,7 +24,6 @@ class DiscordExtraHelper(Module):
         """
         user_info = await ctx.client.fetch_user(user_id)
         guild_info = await ctx.message.guild.fetch_member(user_id)
-        print(f"User info: {user_info}, Guild info: {guild_info}")
         if user_info is None:
             return {
                 "success": False,

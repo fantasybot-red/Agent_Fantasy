@@ -47,15 +47,9 @@ class AIContext:
 
     def _gen_kwargs(self):
         kwargs = {}
-        if self.embeds_update:
-            kwargs["embeds"] = self.embeds
-            self.embeds_update = False
         if self.attachments_update:
             kwargs["attachments"] = self.attachments
             self.attachments_update = False
-        if self.view_update:
-            kwargs["view"] = self.view
-            self.view_update = False
         return kwargs
 
     def add_temp_attachment(self, content: str, content_type: str):
@@ -80,48 +74,25 @@ class AIContext:
         self.attachments.append(attachment)
         self.attachments_update = True
 
-    def set_embeds(self, embeds: List[Embed]):
-        self.embeds.extend(embeds)
-        self.embeds_update = True
-
-    def set_view(self, view: discord.ui.View):
-        self.view = view
-        self.view_update = True
-
-    async def add_response(self, response: str):
+    def add_response(self, response: str):
         self._response += response
-        if not self._response.strip():
-            return
-        if time.time() - self._last_edit > 3 and self._response.strip():
-            emoji = self.client.emojis["typing"]
-            temp_content = self._response[:2000 - len(emoji)] + emoji
-            kwargs = self._gen_kwargs()
-            if len(self._response) > 2000:
-                kwargs["attachments"] = kwargs.get("attachments", []) + [
-                    discord.File(io.BytesIO(self._response.encode('utf-8')), filename="response.md",
-                                 description="Full response content")
-                ]
-            await self._response_message.edit(content=temp_content, **kwargs)
-            self._last_edit = time.time()
+
+    def typing_view(self):
+        view = discord.ui.LayoutView(timeout=1)
+        view.add_item(discord.ui.TextDisplay("-# " + self.client.emojis["typing"]))
+        return view
 
     async def start_response(self):
         if getattr(self, "_response_message", None) is not None:
             return
-        self._response_message = await self.message.reply("-# " + self.client.emojis["typing"])
+        self._response_message = await self.message.reply(view=self.typing_view())
 
     async def finish_response(self):
         if not self._response.strip():
             return
         kwargs = self._gen_kwargs()
         content = self._response
-        if len(self._response) > 2000:
-            kwargs["attachments"] = kwargs.get("attachments", []) + [
-                discord.File(io.BytesIO(self._response.encode('utf-8')), filename="response.md",
-                             description="Full response content")
-            ]
-            content = self._response[:2000 - 3] + "..."
-        await self._response_message.edit(content=content, **kwargs)
-
-    async def set_status(self, status: str):
-        status = self.client.emojis["loading"] + " " + status
-        await self._response_message.edit(content=status)
+        print(f"Response: {content}")
+        view = self.client.format_messages.text_to_component(content)
+        print(f"View: {view.to_components()}")
+        await self._response_message.edit(view=view, **kwargs)
