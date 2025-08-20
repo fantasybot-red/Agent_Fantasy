@@ -18,7 +18,7 @@ class FormatMessages:
         ("SectionButton", r'\[#SectionButton#([^\]]+)\]\(bts\|([^\|]+)\|([01])\)', r'\[/Section/\]'),
 
         ("MediaGalleryItem", r'\[([^\]]*)\]\(media\|([^\|]+)\|([01])\)', None),
-        ("Select", r'\[([^\]]+)\]\(st\|([^\|]+)\|([01])\)', None),
+        ("Select", r'\[([^\]]+)\]\(st\|([^\|]+)\|([1-9])\|([1-9])\|([01])\)', None),
         ("ButtonLink", r'\[([^\]]+)\]\(btu\|([^)]+)\)', None),
         ("Button", r'\[([^\]]+)\]\(bts\|([^\|]+)\|([01])\)', None),
         ("Separator", r"\[#Separator#([12])\]", None)
@@ -191,7 +191,9 @@ class FormatMessages:
             data = {
                 "placeholder": content.group(1),
                 "options": content.group(2).split(',') if content.group(2) else [],
-                "disabled": bool(int(content.group(3)))
+                "min": int(content.group(3)),
+                "max": int(content.group(4)),
+                "disabled": bool(int(content.group(5)))
             }
         elif name == "Separator":
             data = {
@@ -261,6 +263,8 @@ class FormatMessages:
         elif component["type"] == "Select":
             options = [discord.SelectOption(label=opt, value=str(index)) for index, opt in enumerate(data["options"])]
             select = ui.Select(
+                max_values=data["max"],
+                min_values=data["min"],
                 placeholder=data["placeholder"],
                 options=options,
                 disabled=data.get("disabled", False)
