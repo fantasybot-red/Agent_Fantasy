@@ -39,6 +39,9 @@ Components are mentioned in the message to format the response. They are used to
 - All components are not compatible with code blocks, so you must not use them inside code blocks
 - `attachment://{filename}` is used when you have that attachment in the message, otherwise use the URL directly
 - You can use Components as alternative to Markdown formatting
+- IT must not have down line or any characters in component or it will not work
+Bad example: `[#SectionThumbnail#]\n(thn|attachment://image.png|0)` this is incorrect because of the newline character in the component
+Good example: `[#SectionThumbnail#](thn|attachment://image.png|0)` this is correct
 
 #### Container
 Use to display information in a box which shows key details or summaries or information that needs emphasis. Components can't be used inside a Container or in other components.
