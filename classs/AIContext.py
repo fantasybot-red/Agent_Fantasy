@@ -92,7 +92,5 @@ class AIContext:
             return
         kwargs = self._gen_kwargs()
         content = self._response
-        print(f"Response: {content}")
         view = self.client.format_messages.text_to_component(content)
-        print(f"View: {view.to_components()}")
         await self._response_message.edit(view=view, **kwargs)
