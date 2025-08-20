@@ -20,7 +20,6 @@ class HuggingfaceSupport(Module):
                              width: int, height: int):
         """
         Generate an image from a given prompt.
-        - You MUST call `set_status` before using this tool.
         - Prompt MUST be in English.
         - Prompt should be concise and clear.
         - Separate each key charter with a comma.
@@ -78,7 +77,6 @@ class HuggingfaceSupport(Module):
     async def generate_video(self, ctx: AIContext, prompt: str, negative_prompt: str):
         """
         Generate a Video from a given prompt.
-        - You MUST call `set_status` before using this tool.
         - Prompt MUST be in English.
         - Prompt should be concise and clear.
         - Do not add extra information in the prompt like "anime", "realistic", "photo", etc.

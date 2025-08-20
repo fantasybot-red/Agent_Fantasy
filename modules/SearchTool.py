@@ -167,7 +167,6 @@ class SearchTool(Module):
         - This method is only for general web searches without specific URLs
 
         REQUIREMENTS:
-        - Call `set_status` before search
         - Recommend English queries only ( user other languages may lead to unexpected results )
         - Make queries concise yet specific for optimal results
         - Taget context should be clear and MUST be detailed as possible
