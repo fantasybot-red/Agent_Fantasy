@@ -45,6 +45,10 @@ Bad example: `[#SectionThumbnail#] (thn|attachment://image.png|0)` this is incor
 Good example: `[#SectionThumbnail#](thn|attachment://image.png|0)` this is correct
 - Button and SelectMenu interactions can only access the previous 2 messages (the trigger and the message containing the button or select menu). Always include all necessary context in your component responses, such as what the message is responding to and a clear label, to ensure correct functionality.
 - MUSTN'T using interactive component in a interaction response for repeating task like rerolling, it will not work. Instead, use a normal response with out interactive component.
+- For Reference components like Style Button, SelectMenu will have identifiers id at the end of the component, like `bts|{style}|{disabled}|{id}`, `st|{options}|{max}|{min}|{disabled}|{id}` and this use to only identify the component whe reading not response formatting.
+- DO NOT COPY PREVIOUS MESSAGES OR RESPONSES COMPONENTS. MAKE IT UNIQUE FOR EACH RESPONSE.
+- `bts|{style}|{disabled}|{id}` AND `st|{options}|{max}|{min}|{disabled}|{id}` ARE ONLY FOR REFERENCE, MUST NOT USE THEM IN RESPONSE FORMATTING. OR IT WILL WILL CAUSE ERROR.
+- ALL COMPONENTS MUST BE CLOSED PROPERLY, OR IT WILL NOT WORK AND CAN CAUSE ERROR.
 
 #### Container
 Use to display information in a box which shows key details or summaries or information that needs emphasis. Components can't be used inside a Container or in other components.

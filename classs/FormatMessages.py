@@ -261,7 +261,7 @@ class FormatMessages:
                 disabled=data.get("disabled", False)
             )
         elif component["type"] == "Select":
-            options = [discord.SelectOption(label=opt, value=str(index)) for index, opt in enumerate(data["options"])]
+            options = [discord.SelectOption(label=opt, value=str(index)) for index, opt in enumerate(data["options"], start=1)]
             select = ui.Select(
                 max_values=data["max"],
                 min_values=data["min"],
@@ -286,7 +286,7 @@ class FormatMessages:
             size = component["data"].get("size", 1)
             spacing = discord.SeparatorSpacing(size)
             return ui.Separator(spacing=spacing)
-        return None
+
 
     async def format_user_message(self, message: discord.Message) -> list[dict]:
         context = {

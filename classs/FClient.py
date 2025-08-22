@@ -230,7 +230,7 @@ class FClient(discord.Client):
             custom_id = interaction.data["custom_id"]
             value = ""
             if not is_button:
-                value = f" with index selected: `{interaction.data['values']}`"
+                value = f" with index selected: `{interaction.data['values']}` (index start from 1)"
             messages = [
                 {"role": "system", "content": self.get_system_prompt(original_message)},
                 {"role": "user", "content": await self.format_messages.format_user_message(original_message)},
