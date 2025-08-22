@@ -286,7 +286,7 @@ class FormatMessages:
             size = component["data"].get("size", 1)
             spacing = discord.SeparatorSpacing(size)
             return ui.Separator(spacing=spacing)
-
+        return None
 
     async def format_user_message(self, message: discord.Message) -> list[dict]:
         context = {

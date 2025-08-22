@@ -195,7 +195,7 @@ class FClient(discord.Client):
         if interaction.data is None:
             return
 
-        is_button = interaction.data["component_type"] == discord.ComponentType.button
+        is_button = interaction.data["component_type"] == discord.ComponentType.button.value
 
         try:
             original_message = await interaction.channel.fetch_message(interaction.message.reference.message_id)
@@ -218,7 +218,7 @@ class FClient(discord.Client):
         ctx._response_message = await interaction.message.reply(view=ctx.typing_view())
 
         async with ctx:
-            interaction_type = "press a button" if is_button else "selected"
+            interaction_type = "button" if is_button else "select menu"
             user_info = {
                 "User ID": interaction.user.id,
                 "User Name": interaction.user.name
@@ -236,7 +236,7 @@ class FClient(discord.Client):
                 {"role": "user", "content": await self.format_messages.format_user_message(original_message)},
                 {"role": "assistant", "content": await self.format_messages.format_ai_message(interaction.message)},
                 {"role": "developer", "content": [
-                    {"type": "text", "text": f"User just {interaction_type} with id: `{custom_id}`{value}"},
+                    {"type": "text", "text": f"User just interact {interaction_type} with id: `{custom_id}`{value}"},
                     {"type": "text", "text": f"User info: {json.dumps(user_info)}"}
                 ]}
             ]

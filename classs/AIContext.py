@@ -3,6 +3,7 @@ import io
 import mimetypes
 import os
 import time
+import traceback
 from typing import List
 
 import discord
@@ -42,7 +43,20 @@ class AIContext:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.finish_response()
+        try:
+            await self.finish_response()
+        except Exception as e:
+            fomarted_error = traceback.format_exception(e)
+            error_message = "".join(fomarted_error)
+            component = discord.ui.Container()
+            component.add_item(discord.ui.TextDisplay("# An error occurred while processing the response"))
+            component.add_item(discord.ui.Separator(spacing=discord.SeparatorSpacing.large))
+            component.add_item(discord.ui.TextDisplay(f"```py\n{error_message}\n```"))
+            view = discord.ui.LayoutView(timeout=1)
+            view.add_item(component)
+            await self._response_message.edit(view=view)
+            print(f"Error in AIContext: {error_message}")
+            print("Error Response:", self._response, "-------- error end --------")
         await self.mcp_session.__aexit__(exc_type, exc_val, exc_tb)
 
     def _gen_kwargs(self):

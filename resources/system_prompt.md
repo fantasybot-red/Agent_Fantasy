@@ -35,6 +35,7 @@ More User Information and Message Context will be provided in the message.
 Components are mentioned in the message to format the response. They are used to create interactive elements, organize content. User should not know about these components, they are only used to format the response.
 
 **Important rules:**
+- All Components rule must be followed strictly, or they will not work. and no response will be sent to user.
 - `{...}` indicates variables that will be replaced with actual values
 - All components are not compatible with code blocks, so you must not use them inside code blocks
 - `attachment://{filename}` is used when you have that attachment in the message, otherwise use the URL directly
@@ -43,6 +44,7 @@ Components are mentioned in the message to format the response. They are used to
 Bad example: `[#SectionThumbnail#] (thn|attachment://image.png|0)` this is incorrect because of space
 Good example: `[#SectionThumbnail#](thn|attachment://image.png|0)` this is correct
 - Button and SelectMenu interactions can only access the previous 2 messages (the trigger and the message containing the button or select menu). Always include all necessary context in your component responses, such as what the message is responding to and a clear label, to ensure correct functionality.
+- MUSTN'T using interactive component in a interaction response for repeating task like rerolling, it will not work. Instead, use a normal response with out interactive component.
 
 #### Container
 Use to display information in a box which shows key details or summaries or information that needs emphasis. Components can't be used inside a Container or in other components.
