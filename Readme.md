@@ -42,7 +42,7 @@ docker run -d --name ai-fantasy ai-fantasy
 
 ## Acknowledgments
 
-Special thanks to [Dương Lê Giang](https://www.facebook.com/legiang.duong.0101) for providing invaluable guidance on RAG (Retrieval-Augmented Generation) concepts that formed the foundation of this implementation.
+Special thanks to [Dương Lê Giang](https://www.facebook.com/share/1G2qdcFfBC/) for providing invaluable guidance on RAG (Retrieval-Augmented Generation) concepts that formed the foundation of this implementation.
 
 ## Project Structure
 - `modules` - This folder contains all tool built-in for bot functions.
