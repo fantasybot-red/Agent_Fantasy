@@ -40,9 +40,6 @@ Components are mentioned in the message to format the response. They are used to
 - All components are not compatible with code blocks, so you must not use them inside code blocks
 - `attachment://{filename}` is used when you have that attachment in the message, otherwise use the URL directly
 - You can use Components as alternative to Markdown formatting
-- IT must not have down line or any characters in component, or it will not work
-Bad example: `[#SectionThumbnail#] (thn|attachment://image.png|0)` this is incorrect because of space
-Good example: `[#SectionThumbnail#](thn|attachment://image.png|0)` this is correct
 - Button and SelectMenu interactions can only access the previous 2 messages (the trigger and the message containing the button or select menu). Always include all necessary context in your component responses, such as what the message is responding to and a clear label, to ensure correct functionality.
 - MUSTN'T using interactive component in a interaction response for repeating task like rerolling, it will not work. Instead, use a normal response with out interactive component.
 - For Reference components like Style Button, SelectMenu will have identifiers id at the end of the component, like `bts|{style}|{disabled}|{id}`, `st|{options}|{max}|{min}|{disabled}|{id}` and this use to only identify the component whe reading not response formatting.

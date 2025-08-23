@@ -218,7 +218,6 @@ class FClient(discord.Client):
         ctx._response_message = await interaction.message.reply(view=ctx.typing_view())
 
         async with ctx:
-            interaction_type = "button" if is_button else "select menu"
             user_info = {
                 "User ID": interaction.user.id,
                 "User Name": interaction.user.name
@@ -228,16 +227,16 @@ class FClient(discord.Client):
                     user_info["User Nickname"] = interaction.user.nick
 
             custom_id = interaction.data["custom_id"]
-            value = ""
+            message = f"User just interact button with id: `{custom_id}`"
             if not is_button:
                 selected_options = ",".join(interaction.data['values'])
-                value = f" and selected indexes: `{selected_options}` (starting from 1 for first option)"
+                message = f"User just select with id `{custom_id}` and selected options index: `{selected_options}` (1-based index where `,` is separator for multiple indexes)"
             messages = [
                 {"role": "system", "content": self.get_system_prompt(original_message)},
                 {"role": "user", "content": await self.format_messages.format_user_message(original_message)},
                 {"role": "assistant", "content": await self.format_messages.format_ai_message(interaction.message)},
                 {"role": "developer", "content": [
-                    {"type": "text", "text": f"User just interact {interaction_type} with id: `{custom_id}`{value}"},
+                    {"type": "text", "text": message},
                     {"type": "text", "text": f"User info: {json.dumps(user_info)}"}
                 ]}
             ]
