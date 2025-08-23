@@ -261,7 +261,7 @@ class FormatMessages:
                 disabled=data.get("disabled", False)
             )
         elif component["type"] == "Select":
-            options = [discord.SelectOption(label=opt, value=str(index)) for index, opt in enumerate(data["options"], start=1)]
+            options = [discord.SelectOption(label=opt, value=str(index)) for index, opt in enumerate(data["options"])]
             select = ui.Select(
                 max_values=data["max"],
                 min_values=data["min"],

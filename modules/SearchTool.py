@@ -86,11 +86,11 @@ class SearchTool(Module):
 
         return np.dot(v1, v2) / (n1 * n2)
 
-    def _refomart_item_to_dict(self, item: Item) -> Dict[str, Any]:
+    def _refomart_item_to_dict(self, item: Item, show:bool=True) -> Dict[str, Any]:
         return {
             "title": item.title,
             "url": item.url,
-            "snippet": item.snippet
+            "snippet": item.snippet if show else "Using fetch tool to get content",
         }
 
     def _create_evaluation_message(
@@ -348,6 +348,8 @@ class SearchTool(Module):
         It returns the top search results based on the query.
         After searching, it will return the results select the most relevant link then use `fetch` tool to get the content.
         Recommend using this tool for all general searches.
+        REMEMBER SEARCH RESULTS CAN BE OUTDATED.
+        You must fetch the content using `fetch` or `fetch_and_search_document` tool after getting the search results. snippet is just for filtering and context rating.
         """
         if self.client.google_search_client is None:
             return {
@@ -365,7 +367,7 @@ class SearchTool(Module):
         return {
             "success": True,
             "reason": "Search completed successfully.",
-            "results": [self._refomart_item_to_dict(item) for item in search_results]
+            "results": [self._refomart_item_to_dict(item, show=False) for item in search_results]
         }
 
 

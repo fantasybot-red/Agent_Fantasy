@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import traceback
@@ -76,7 +77,11 @@ class FClient(discord.Client):
             self.huggingface = None
 
     def get_system_prompt(self, message: discord.Message, **kwargs):
+        now = datetime.datetime.now(datetime.UTC)
         return self.system_prompt.safe_substitute(
+            # Yes AI need know current time and date for realtime event searching
+            current_time=now.strftime("%H:%M:%S"),
+            current_date=now.strftime("%d/%m/%Y"),
             bot_mention=self.user.mention,
             bot_name=self.user.name,
             is_nsfw=message.channel.nsfw,
@@ -230,7 +235,7 @@ class FClient(discord.Client):
             message = f"User just interact button with id: `{custom_id}`"
             if not is_button:
                 selected_options = ",".join(interaction.data['values'])
-                message = f"User just select with id `{custom_id}` and selected options index: `{selected_options}` (1-based index where `,` is separator for multiple indexes)"
+                message = f"User just select with id `{custom_id}` and selected options index: `{selected_options}` (0-based index where `,` is separator for multiple indexes)"
             messages = [
                 {"role": "system", "content": self.get_system_prompt(original_message)},
                 {"role": "user", "content": await self.format_messages.format_user_message(original_message)},
