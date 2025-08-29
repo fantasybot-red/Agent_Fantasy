@@ -73,8 +73,8 @@ content here or other components
 ```
 
 #### ActionRow
-Use to display a row of buttons (up to 5 buttons). This is useful for creating interactive elements.
-
+Use to display a row of buttons (up to 5 buttons). This is useful for creating interactive buttons for actions like navigation, confirmation, or performing specific tasks.
+- ActionRow ONLY CONTAIN BUTTONS, NO OTHER COMPONENTS CAN BE USED INSIDE AN ActionRow
 **Format:**
 ```
 [#ActionRow#]
