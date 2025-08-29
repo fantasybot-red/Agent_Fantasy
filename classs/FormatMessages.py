@@ -62,11 +62,13 @@ class FormatMessages:
             content += f"[{component.placeholder}](st|{options_text}|{int(component.disabled)}|{component.custom_id}\)"
 
         elif isinstance(component, ui.ActionRow):
-            content += "[#ActionRow#]\n"
-            for item in component.children:
-                content += self.component_to_text(item)
-            content += "[/ActionRow/]\n"
-
+            if len(component.children) == 1 and isinstance(component.children[0], ui.Select):
+                content += self.component_to_text(component.children[0]) # Select in ActionRow
+            else:
+                content += "[#ActionRow#]\n"
+                for item in component.children:
+                    content += self.component_to_text(item)
+                content += "[/ActionRow/]\n"
         elif isinstance(component, ui.Container):
             content += "[#Container#]\n"
             for item in component.children:
